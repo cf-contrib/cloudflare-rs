@@ -21,3 +21,12 @@ actions:
   # in the request body of every Workers Observability query.
   - target: $.paths..filters.items.allOf[1]
     remove: true
+  # A token policy's `id` is read-only: the API assigns it. The document still
+  # lists it as required, so the generated type always sends one when a token is
+  # created, which none of Cloudflare's own SDKs do.
+  - target: $.components.schemas['iam_policy_with_permission_groups_and_resources'].required[?@ == 'id']
+    remove: true
+  # Permission groups are listed with every scope they have. A closed enum fails
+  # the whole list as soon as Cloudflare adds a scope, so they're plain strings.
+  - target: $.components.schemas['iam_permissions_group_response_collection']..scopes.items.enum
+    remove: true
