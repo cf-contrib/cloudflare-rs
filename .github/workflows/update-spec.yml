@@ -1,25 +1,28 @@
-name: Refresh spec
-
+name: Update Spec
 # Cloudflare updates its document most days. Once a week, open a pull request
 # with the latest, saying whether the generator still accepts it.
 on:
   schedule:
-    - cron: "0 6 * * 1"
+    - cron: "0 0 * * 1"
   workflow_dispatch:
-
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
-  refresh:
+  update:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-      - run: cargo install --locked openapi-to-rust --version "$(cargo pkgid openapi-to-rust | sed 's/.*@//')"
-
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Generate App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v23
       - name: Download the latest document
         id: spec
         env:
@@ -37,16 +40,24 @@ jobs:
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
-
+      # Adds a feature for every product the document added, and drops those
+      # it dropped. The build that rewrites them fails, so that one is let be.
+      - name: Update Product Features
+        if: steps.spec.outputs.changed == 'true'
+        env:
+          CLOUDFLARE_RS_SYNC_FEATURES: "1"
+        run: nix develop --command cargo check || true
       - name: Generate
         if: steps.spec.outputs.changed == 'true'
+        env:
+          CLOUDFLARE_RS_CHECK: "1"
         run: |
           body="$RUNNER_TEMP/body.md"
           {
             echo "Updates \`openapi/cloudflare/v4/openapi.yaml\` to cloudflare/api-schemas@${{ steps.spec.outputs.sha }}."
             echo
           } > "$body"
-          if openapi-to-rust generate --config openapi-to-rust.toml --dry-run --quiet > "$RUNNER_TEMP/generate.log" 2>&1; then
+          if nix develop --command cargo check > "$RUNNER_TEMP/generate.log" 2>&1; then
             echo "openapi-to-rust generates the whole API from it." >> "$body"
           else
             {
@@ -57,18 +68,19 @@ jobs:
               echo '```'
             } >> "$body"
           fi
-
-      - if: steps.spec.outputs.changed == 'true'
+      - name: Create Pull Request
+        if: steps.spec.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
-          # A pull request opened with the workflow's own token doesn't run CI.
-          # A token in this secret, if there is one, does.
-          token: ${{ secrets.SPEC_REFRESH_TOKEN || github.token }}
-          branch: refresh-spec
+          token: ${{ steps.app-token.outputs.token }}
+          branch: update-spec
           delete-branch: true
           add-paths: |
             openapi/cloudflare/v4/openapi.yaml
+            Cargo.toml
             README.md
-          commit-message: Update the Cloudflare document to cloudflare/api-schemas@${{ steps.spec.outputs.short }}
-          title: Update the Cloudflare document to cloudflare/api-schemas@${{ steps.spec.outputs.short }}
+          commit-message: "chore(spec): update to cloudflare/api-schemas@${{ steps.spec.outputs.short }}"
+          title: "chore(spec): update to cloudflare/api-schemas@${{ steps.spec.outputs.short }}"
           body-path: ${{ runner.temp }}/body.md
+          labels: |
+            dependencies

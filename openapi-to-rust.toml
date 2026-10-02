@@ -1,14 +1,12 @@
-# How the API is generated, for build.rs and the openapi-to-rust CLI alike.
+# How the API is generated. build.rs reads it, generates into OUT_DIR, and picks
+# the operations from the crate's features. The openapi-to-rust CLI reads it
+# too, to see the whole API's generated code without building it:
 #
-# build.rs generates into OUT_DIR, and only the client when the `client`
-# feature is on. CI runs the CLI over the whole document, which takes seconds
-# where compiling it takes minutes:
-#
-#   openapi-to-rust generate --config openapi-to-rust.toml --dry-run
+#   openapi-to-rust generate --config openapi-to-rust.toml
 
 [generator]
 spec_path = "openapi/cloudflare/v4/openapi.yaml"
-# Where the CLI would write, were it not a dry run. build.rs replaces it.
+# Where the CLI writes. build.rs replaces it.
 output_dir = "target/openapi-to-rust"
 module_name = "v4"
 overlays = ["openapi/cloudflare/v4/overlay.yaml"]

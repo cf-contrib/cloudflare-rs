@@ -7,7 +7,7 @@
 # which fields must be present, which a Rust type can't express anyway.
 overlay: 1.1.0
 info:
-  title: cloudflare-sdk fixes
+  title: cloudflare-rs fixes
   version: 1.0.0
 actions:
   # "At least one of to, cc or bcc" and "at least one of text or html".

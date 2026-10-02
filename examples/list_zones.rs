@@ -4,7 +4,7 @@
 //! CLOUDFLARE_API_TOKEN=... cargo run --features client --example list_zones
 //! ```
 
-use cloudflare_sdk::v4::HttpClient;
+use cloudflare::v4::HttpClient;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

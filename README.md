@@ -1,25 +1,65 @@
-# Cloudflare SDK
+# cloudflare-rs
 
 > The [Cloudflare API](https://developers.cloudflare.com/api/), as Cloudflare's
 > OpenAPI document, and the Rust generated from it: the types, and a client.
 
-Everything is under `v4`:
+This isn't published to crates.io, and won't be: it's here until Cloudflare
+releases an official Rust SDK generated from its document, as it has for Go,
+TypeScript and Python. The `cloudflare` crate on crates.io is Cloudflare's own
+[cloudflare-rs](https://github.com/cloudflare/cloudflare-rs), not this.
+
+## Using it
+
+Depend on it from git, with a feature for each Cloudflare product you use, and
+`client` for the client:
+
+```toml
+[dependencies]
+cloudflare = { git = "https://github.com/cf-contrib/cloudflare-rs", rev = "<commit>", features = ["client", "dns", "zones"] }
+```
+
+Pin a `rev`, or a `tag` once there are releases: the document changes weekly,
+and with it the types. Everything is under `v4`:
 
 ```rust
-use cloudflare_sdk::v4::*;
+use cloudflare::v4::*;
+```
+
+To use it beside the `cloudflare` crate from crates.io, rename one of them:
+
+```toml
+cloudflare-api = { package = "cloudflare", git = "https://github.com/cf-contrib/cloudflare-rs", rev = "<commit>", features = ["client", "dns"] }
+```
+
+The build script generates the code from Cloudflare's document, which takes
+some 15 seconds unoptimized, whenever the features you use change. Optimizing
+build scripts makes that 5:
+
+```toml
+[profile.dev.build-override]
+opt-level = 3
 ```
 
 ## What is in it
 
+There is a feature per Cloudflare product, and nothing is generated for a
+product that isn't on.
+
 | Feature | What it adds |
 |---|---|
-| (none) | The types: a struct or enum for every schema in the document, such as `ZonesZone`. |
-| `client` | `HttpClient`, a method per operation, over reqwest. |
+| A product, such as `dns`, `zones`, `workers`, `kv` or `r2` | Its operations, and a struct or enum for every type they use, such as `ZonesZone`. |
+| `full` | Every product. |
+| `client` | `HttpClient`, a method per operation of the products that are on, over reqwest. |
+
+The products are Cloudflare's own SDKs' resources: the first part of each
+operation's `x-fern-sdk-group-name` in the document, so `dns.records` is in
+`dns`. The few operations without one are in `other`. Cargo.toml lists them
+all, with how many operations each has.
 
 ## Calling the API
 
 ```rust
-use cloudflare_sdk::v4::HttpClient;
+use cloudflare::v4::HttpClient;
 
 // The API token is sent as a bearer token, to https://api.cloudflare.com/client/v4.
 let client = HttpClient::new().with_api_key(std::env::var("CLOUDFLARE_API_TOKEN")?);
@@ -40,7 +80,7 @@ one.
 read:
 
 ```sh
-CLOUDFLARE_API_TOKEN=... cargo run --features client --example list_zones
+CLOUDFLARE_API_TOKEN=... cargo run --features client,zones --example list_zones
 ```
 
 ## Generated code
@@ -54,32 +94,49 @@ source, vendored unchanged from
 generator needs, which says what each one is.
 
 `build.rs` runs [openapi-to-rust](https://github.com/gpu-cli/openapi-to-rust)
-over the two into `OUT_DIR` on every build that changes them, with the client
-only when its feature is on. None of it is checked in or edited by hand. How it
-runs is in [`openapi-to-rust.toml`](openapi-to-rust.toml), which the CLI reads
-too, so CI checks the whole API generates in seconds without compiling it:
+over the two into `OUT_DIR` on every build that changes them, as
+[`openapi-to-rust.toml`](openapi-to-rust.toml) says, for the products that are
+on. None of it is checked in or edited by hand.
+
+The product features in Cargo.toml are generated from the document too, and the
+build fails if they aren't the document's. To rewrite them:
 
 ```sh
-openapi-to-rust generate --config openapi-to-rust.toml --dry-run
+CLOUDFLARE_RS_SYNC_FEATURES=1 cargo check
 ```
 
-Every Monday, [a workflow](.github/workflows/refresh-spec.yml) opens a pull
-request with Cloudflare's latest document, saying whether the generator still
-accepts it. If it doesn't, the fix goes in the overlay. To do the same by hand:
+Compiling every product takes some 10 minutes and over 10 GB of memory, so CI
+compiles `dns` and `zones`, and `CLOUDFLARE_RS_CHECK=1` has build.rs generate
+the rest in memory, which takes seconds:
+
+```sh
+CLOUDFLARE_RS_CHECK=1 cargo clippy --features client,dns,zones --all-targets
+```
+
+Every Monday, [a workflow](.github/workflows/update-spec.yml) opens a pull
+request with Cloudflare's latest document and the features for it, saying
+whether the generator still accepts it. If it doesn't, the fix goes in the
+overlay. To do the same by hand:
 
 ```sh
 curl -fsSL -o openapi/cloudflare/v4/openapi.yaml \
   https://raw.githubusercontent.com/cloudflare/api-schemas/main/openapi.yaml
+CLOUDFLARE_RS_SYNC_FEATURES=1 cargo check
 ```
 
 and update the commit above.
 
+## Development
+
+`nix develop` has the toolchain, from [`flake.nix`](flake.nix), and so has the
+[dev container](.devcontainer/devcontainer.json).
+
 ## Size
 
-The document has some 3,600 operations and 7,000 schemas, and the generated
-code is over a million lines. Expect `cargo check` of this crate to take
-several minutes and over 10 GB of memory, the first time and whenever the
-document changes. After that, cargo reuses it.
+The document has some 3,600 operations and 7,000 schemas. With `full`, the
+generated code is over a million lines, and `cargo check` takes several minutes
+and over 10 GB of memory. `dns` and `zones` with `client` are some 36,000 lines,
+and take seconds.
 
 ## Known gaps
 
