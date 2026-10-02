@@ -1,0 +1,63 @@
+[package]
+name = "cloudflare-sdk"
+version = "0.1.0"
+edition = "2024"
+authors = ["iamralch"]
+readme = "README.md"
+
+[dependencies]
+# The model types, which every mode of the generated code shares.
+base64 = "0.22"
+bytes = { version = "1", features = ["serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+url = { version = "2", features = ["serde"] }
+uuid = { version = "1", features = ["serde"] }
+
+# The client side, behind the `client` feature, so a crate that only needs the
+# types compiles no HTTP client.
+futures-timer = { version = "3", optional = true }
+futures-util = { version = "0.3", optional = true }
+reqwest = { version = "0.13", default-features = false, features = ["multipart", "query", "rustls", "stream"], optional = true }
+reqwest-middleware = { version = "0.5", features = ["multipart", "query"], optional = true }
+serde_urlencoded = { version = "0.7", optional = true }
+thiserror = { version = "2", optional = true }
+tracing = { version = "0.1", optional = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+# The client's timeouts and retry backoff sleep on futures-timer, which on
+# wasm needs the browser's timers.
+futures-timer = { version = "3", features = ["wasm-bindgen"], optional = true }
+
+[features]
+# HttpClient, a typed client for every operation.
+client = [
+  "dep:futures-timer",
+  "dep:futures-util",
+  "dep:reqwest",
+  "dep:reqwest-middleware",
+  "dep:serde_urlencoded",
+  "dep:thiserror",
+  "dep:tracing",
+]
+
+[build-dependencies]
+# Generates the API from the OpenAPI document, in build.rs. Without the `cli`
+# default it is only the library: no clap, no reqwest.
+openapi-to-rust = { version = "0.19", default-features = false }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+
+[[example]]
+name = "list_zones"
+required-features = ["client"]
+
+# build.rs parses the 20 MB Cloudflare document and generates over a million
+# lines from it, which takes minutes unoptimized and seconds optimized.
+[profile.dev.build-override]
+opt-level = 3
+
+[profile.release.build-override]
+opt-level = 3
