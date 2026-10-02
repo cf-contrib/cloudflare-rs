@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  # Generating the whole API takes seconds, where compiling it takes minutes and
+  # more memory than a hosted runner has. This catches a document or overlay
+  # the generator rejects.
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      # The CLI, at the version build.rs is locked to.
+      - run: cargo install --locked openapi-to-rust --version "$(cargo pkgid openapi-to-rust | sed 's/.*@//')"
+      - run: openapi-to-rust generate --config openapi-to-rust.toml --dry-run --quiet
+
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt --check

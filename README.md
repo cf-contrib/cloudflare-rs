@@ -55,17 +55,24 @@ generator needs, which says what each one is.
 
 `build.rs` runs [openapi-to-rust](https://github.com/gpu-cli/openapi-to-rust)
 over the two into `OUT_DIR` on every build that changes them, with the client
-only when its feature is on. None of it is checked in or edited by hand.
+only when its feature is on. None of it is checked in or edited by hand. How it
+runs is in [`openapi-to-rust.toml`](openapi-to-rust.toml), which the CLI reads
+too, so CI checks the whole API generates in seconds without compiling it:
 
-To update the document:
+```sh
+openapi-to-rust generate --config openapi-to-rust.toml --dry-run
+```
+
+Every Monday, [a workflow](.github/workflows/refresh-spec.yml) opens a pull
+request with Cloudflare's latest document, saying whether the generator still
+accepts it. If it doesn't, the fix goes in the overlay. To do the same by hand:
 
 ```sh
 curl -fsSL -o openapi/cloudflare/v4/openapi.yaml \
   https://raw.githubusercontent.com/cloudflare/api-schemas/main/openapi.yaml
 ```
 
-and update the commit above. If the generator rejects the new document, the fix
-goes in the overlay.
+and update the commit above.
 
 ## Size
 

@@ -1,0 +1,74 @@
+name: Refresh spec
+
+# Cloudflare updates its document most days. Once a week, open a pull request
+# with the latest, saying whether the generator still accepts it.
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo install --locked openapi-to-rust --version "$(cargo pkgid openapi-to-rust | sed 's/.*@//')"
+
+      - name: Download the latest document
+        id: spec
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha=$(gh api repos/cloudflare/api-schemas/commits/main --jq .sha)
+          curl -fsSL -o openapi/cloudflare/v4/openapi.yaml \
+            "https://raw.githubusercontent.com/cloudflare/api-schemas/$sha/openapi.yaml"
+          # The README says which commit is vendored.
+          sed -i -E "s/\`[0-9a-f]{40}\`/\`$sha\`/" README.md
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "short=${sha::7}" >> "$GITHUB_OUTPUT"
+          if git diff --quiet -- openapi; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Generate
+        if: steps.spec.outputs.changed == 'true'
+        run: |
+          body="$RUNNER_TEMP/body.md"
+          {
+            echo "Updates \`openapi/cloudflare/v4/openapi.yaml\` to cloudflare/api-schemas@${{ steps.spec.outputs.sha }}."
+            echo
+          } > "$body"
+          if openapi-to-rust generate --config openapi-to-rust.toml --dry-run --quiet > "$RUNNER_TEMP/generate.log" 2>&1; then
+            echo "openapi-to-rust generates the whole API from it." >> "$body"
+          else
+            {
+              echo "**openapi-to-rust rejects it.** The fix goes in \`openapi/cloudflare/v4/overlay.yaml\`:"
+              echo
+              echo '```'
+              grep -v '⚠️' "$RUNNER_TEMP/generate.log" | tail -20
+              echo '```'
+            } >> "$body"
+          fi
+
+      - if: steps.spec.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          # A pull request opened with the workflow's own token doesn't run CI.
+          # A token in this secret, if there is one, does.
+          token: ${{ secrets.SPEC_REFRESH_TOKEN || github.token }}
+          branch: refresh-spec
+          delete-branch: true
+          add-paths: |
+            openapi/cloudflare/v4/openapi.yaml
+            README.md
+          commit-message: Update the Cloudflare document to cloudflare/api-schemas@${{ steps.spec.outputs.short }}
+          title: Update the Cloudflare document to cloudflare/api-schemas@${{ steps.spec.outputs.short }}
+          body-path: ${{ runner.temp }}/body.md

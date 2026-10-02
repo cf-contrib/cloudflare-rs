@@ -1,6 +1,6 @@
 //! Generates the Cloudflare `v4` API from `openapi/cloudflare/v4/openapi.yaml`,
 //! with `overlay.yaml` applied, into `OUT_DIR`, which `src/lib.rs` mounts as
-//! `v4`.
+//! `v4`. How is in `openapi-to-rust.toml`, which the CLI reads too.
 //!
 //! The crate's features pick what is generated: the model types always, the
 //! reqwest client with `client`. Nothing generated is checked in, so the
@@ -9,33 +9,29 @@
 use std::{env, error::Error, fs, path::PathBuf};
 
 use openapi_to_rust::{
-    CodeGenerator, GeneratorConfig, SchemaAnalyzer, TypeMapper,
+    CodeGenerator, ConfigFile, SchemaAnalyzer, TypeMapper,
     overlay::preprocess_spec,
     spec_source::{parse_spec, validate_oas_document},
 };
 
+const CONFIG: &str = "openapi-to-rust.toml";
 const SPEC: &str = "openapi/cloudflare/v4/openapi.yaml";
 const OVERLAY: &str = "openapi/cloudflare/v4/overlay.yaml";
 
 fn main() -> Result<(), Box<dyn Error>> {
     println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-changed={CONFIG}");
     println!("cargo:rerun-if-changed={SPEC}");
     println!("cargo:rerun-if-changed={OVERLAY}");
 
     let out_dir = PathBuf::from(env::var("OUT_DIR")?).join("v4");
     let client = env::var_os("CARGO_FEATURE_CLIENT").is_some();
 
-    let mut config = GeneratorConfig {
-        spec_path: SPEC.into(),
-        output_dir: out_dir.clone(),
-        module_name: "v4".to_string(),
-        overlays: vec![OVERLAY.into()],
-        enable_async_client: client,
-        tracing_enabled: false,
-        ..Default::default()
-    };
+    let mut config = ConfigFile::load(CONFIG.as_ref())?.into_generator_config();
+    config.output_dir = out_dir.clone();
+    config.enable_async_client = client;
 
-    let spec = parse_spec(&fs::read_to_string(SPEC)?, SPEC)?;
+    let spec = parse_spec(&fs::read_to_string(&config.spec_path)?, SPEC)?;
     let spec = preprocess_spec(spec, &config.schema_extensions, &config.overlays)?;
     if let Some(warning) = validate_oas_document(&spec)? {
         println!("cargo:warning={warning}");
