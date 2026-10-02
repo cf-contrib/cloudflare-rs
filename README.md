@@ -141,11 +141,12 @@ and take seconds.
 
 - There are no per-operation builders. openapi-to-rust can generate them, but in
   0.19 the ones for a dozen of Cloudflare's operations, whose bodies are unions,
-  don't compile.
+  don't compile ([gpu-cli/openapi-to-rust#86](https://github.com/gpu-cli/openapi-to-rust/issues/86)).
 - The generator can't encode a multipart field that is a JSON object, so the 13
   operations that take one return `HttpError::Config` without sending anything:
   uploading a Worker's script, content, version or settings (including under
   Workers for Platforms), writing a KV value with metadata, uploading an image
-  or creating a direct upload URL, and converting to Markdown with Workers AI.
+  or creating a direct upload URL, and converting to Markdown with Workers AI
+  ([gpu-cli/openapi-to-rust#87](https://github.com/gpu-cli/openapi-to-rust/issues/87)).
 - A few constraints the document states but Rust types can't, such as "at least
   one of `to`, `cc` or `bcc`", are the API's to enforce, not the types'.

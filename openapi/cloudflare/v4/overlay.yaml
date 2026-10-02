@@ -4,7 +4,8 @@
 # Each action removes an `allOf` member that intersects one union with another.
 # The generator can't flatten that into one Rust type, and every one of them
 # either repeats a constraint the other member already states, or only says
-# which fields must be present, which a Rust type can't express anyway.
+# which fields must be present, which a Rust type can't express anyway:
+# https://github.com/gpu-cli/openapi-to-rust/issues/88
 overlay: 1.1.0
 info:
   title: cloudflare-rs fixes
