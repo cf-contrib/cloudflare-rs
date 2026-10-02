@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2024"
 authors = ["iamralch"]
 readme = "README.md"
+# This crate is MIT, and the Cloudflare document it vendors BSD-3-Clause.
+license = "MIT AND BSD-3-Clause"
 # A git dependency only: see the README.
 publish = false
 

@@ -7,6 +7,7 @@
 [![Update Spec](https://github.com/cf-contrib/cloudflare-rs/actions/workflows/update-spec.yml/badge.svg)](https://github.com/cf-contrib/cloudflare-rs/actions/workflows/update-spec.yml)
 [![Rust (edition 2024)](https://img.shields.io/badge/Rust-2024-black?logo=rust)](https://www.rust-lang.org/)
 [![Nix Flake](https://img.shields.io/badge/Nix-Flake-5277C3?logo=nixos&logoColor=white)](https://nixos.wiki/wiki/Flakes)
+[![License: MIT](https://img.shields.io/github/license/cf-contrib/cloudflare-rs)](LICENSE)
 [![OpenAPI: Cloudflare v4](https://img.shields.io/badge/OpenAPI-Cloudflare%20v4-F38020?logo=cloudflare&logoColor=white)](https://github.com/cloudflare/api-schemas)
 
 This isn't published to crates.io, and won't be: it's here until Cloudflare
@@ -156,3 +157,8 @@ and take seconds.
   ([gpu-cli/openapi-to-rust#87](https://github.com/gpu-cli/openapi-to-rust/issues/87)).
 - A few constraints the document states but Rust types can't, such as "at least
   one of `to`, `cc` or `bcc`", are the API's to enforce, not the types'.
+
+## License
+
+[MIT](LICENSE). The Cloudflare document in [`openapi/cloudflare/v4`](openapi/cloudflare/v4)
+is Cloudflare's, under its own [BSD 3-Clause license](openapi/cloudflare/v4/LICENSE).
