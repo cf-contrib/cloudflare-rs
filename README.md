@@ -3,6 +3,12 @@
 > The [Cloudflare API](https://developers.cloudflare.com/api/), as Cloudflare's
 > OpenAPI document, and the Rust generated from it: the types, and a client.
 
+[![CI](https://github.com/cf-contrib/cloudflare-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/cf-contrib/cloudflare-rs/actions/workflows/ci.yml)
+[![Update Spec](https://github.com/cf-contrib/cloudflare-rs/actions/workflows/update-spec.yml/badge.svg)](https://github.com/cf-contrib/cloudflare-rs/actions/workflows/update-spec.yml)
+[![Rust (edition 2024)](https://img.shields.io/badge/Rust-2024-black?logo=rust)](https://www.rust-lang.org/)
+[![Nix Flake](https://img.shields.io/badge/Nix-Flake-5277C3?logo=nixos&logoColor=white)](https://nixos.wiki/wiki/Flakes)
+[![OpenAPI: Cloudflare v4](https://img.shields.io/badge/OpenAPI-Cloudflare%20v4-F38020?logo=cloudflare&logoColor=white)](https://github.com/cloudflare/api-schemas)
+
 This isn't published to crates.io, and won't be: it's here until Cloudflare
 releases an official Rust SDK generated from its document, as it has for Go,
 TypeScript and Python. The `cloudflare` crate on crates.io is Cloudflare's own
