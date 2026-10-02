@@ -21,31 +21,10 @@ jobs:
       - name: Check Formatting
         run: nix develop --command cargo fmt --check
       # Compiling every product takes some 10 minutes and over 10 GB of memory,
-      # so this compiles two, and CLOUDFLARE_RS_CHECK generates the rest.
+      # so this compiles two, and CLOUDFLARE_CHECK generates the rest.
       - name: Run Clippy
         env:
-          CLOUDFLARE_RS_CHECK: "1"
+          CLOUDFLARE_CHECK: "1"
         run: nix develop --command cargo clippy --features client,dns,zones --all-targets -- -D warnings
       - name: Run Tests
         run: nix develop --command cargo test --features client,dns,zones
-
-  release:
-    needs: [test]
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
-    timeout-minutes: 15
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-      - name: Create Release PR
-        uses: googleapis/release-please-action@v5
-        with:
-          manifest-file: .github/config/release-please-manifest.json
-          config-file: .github/config/release-please-config.json
-          target-branch: main

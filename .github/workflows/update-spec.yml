@@ -45,12 +45,12 @@ jobs:
       - name: Update Product Features
         if: steps.spec.outputs.changed == 'true'
         env:
-          CLOUDFLARE_RS_SYNC_FEATURES: "1"
+          CLOUDFLARE_SYNC_FEATURES: "1"
         run: nix develop --command cargo check || true
       - name: Generate
         if: steps.spec.outputs.changed == 'true'
         env:
-          CLOUDFLARE_RS_CHECK: "1"
+          CLOUDFLARE_CHECK: "1"
         run: |
           body="$RUNNER_TEMP/body.md"
           {

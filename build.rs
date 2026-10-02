@@ -11,9 +11,9 @@
 //! grouping Cloudflare's own SDKs use, so `dns.records` is in `dns`, and the
 //! few operations with none are in `other`. The product features in
 //! Cargo.toml are generated from the document too:
-//! `CLOUDFLARE_RS_SYNC_FEATURES=1 cargo check` rewrites them when it changes.
+//! `CLOUDFLARE_SYNC_FEATURES=1 cargo check` rewrites them when it changes.
 //!
-//! `CLOUDFLARE_RS_CHECK=1` also generates the whole API, client and all, and
+//! `CLOUDFLARE_CHECK=1` also generates the whole API, client and all, and
 //! throws it away: it takes seconds where compiling it takes minutes, so CI
 //! knows every feature generates without building them all.
 
@@ -38,8 +38,8 @@ const SPEC: &str = "openapi/cloudflare/v4/openapi.yaml";
 const OVERLAY: &str = "openapi/cloudflare/v4/overlay.yaml";
 const MANIFEST: &str = "Cargo.toml";
 
-const SYNC_FEATURES: &str = "CLOUDFLARE_RS_SYNC_FEATURES";
-const CHECK: &str = "CLOUDFLARE_RS_CHECK";
+const SYNC_FEATURES: &str = "CLOUDFLARE_SYNC_FEATURES";
+const CHECK: &str = "CLOUDFLARE_CHECK";
 
 /// The product features in Cargo.toml are between these lines.
 const FEATURES_BEGIN: &str = "# BEGIN products";
@@ -165,7 +165,7 @@ fn products(spec: &Value) -> Result<BTreeMap<String, Vec<String>>, Box<dyn Error
 }
 
 /// Checks the product features in Cargo.toml are the document's, and with
-/// `CLOUDFLARE_RS_SYNC_FEATURES` set, rewrites them if they aren't.
+/// `CLOUDFLARE_SYNC_FEATURES` set, rewrites them if they aren't.
 fn sync_features(products: &BTreeMap<String, Vec<String>>) -> Result<(), Box<dyn Error>> {
     let manifest = fs::read_to_string(MANIFEST)?;
     let begin = manifest

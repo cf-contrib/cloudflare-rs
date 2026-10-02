@@ -18,8 +18,7 @@ Depend on it from git, with a feature for each Cloudflare product you use, and
 cloudflare = { git = "https://github.com/cf-contrib/cloudflare-rs", rev = "<commit>", features = ["client", "dns", "zones"] }
 ```
 
-Pin a `rev`, or a `tag` once there are releases: the document changes weekly,
-and with it the types. Everything is under `v4`:
+Pin a `rev`: the document changes weekly, and with it the types. Everything is under `v4`:
 
 ```rust
 use cloudflare::v4::*;
@@ -102,15 +101,15 @@ The product features in Cargo.toml are generated from the document too, and the
 build fails if they aren't the document's. To rewrite them:
 
 ```sh
-CLOUDFLARE_RS_SYNC_FEATURES=1 cargo check
+CLOUDFLARE_SYNC_FEATURES=1 cargo check
 ```
 
 Compiling every product takes some 10 minutes and over 10 GB of memory, so CI
-compiles `dns` and `zones`, and `CLOUDFLARE_RS_CHECK=1` has build.rs generate
+compiles `dns` and `zones`, and `CLOUDFLARE_CHECK=1` has build.rs generate
 the rest in memory, which takes seconds:
 
 ```sh
-CLOUDFLARE_RS_CHECK=1 cargo clippy --features client,dns,zones --all-targets
+CLOUDFLARE_CHECK=1 cargo clippy --features client,dns,zones --all-targets
 ```
 
 Every Monday, [a workflow](.github/workflows/update-spec.yml) opens a pull
@@ -121,7 +120,7 @@ overlay. To do the same by hand:
 ```sh
 curl -fsSL -o openapi/cloudflare/v4/openapi.yaml \
   https://raw.githubusercontent.com/cloudflare/api-schemas/main/openapi.yaml
-CLOUDFLARE_RS_SYNC_FEATURES=1 cargo check
+CLOUDFLARE_SYNC_FEATURES=1 cargo check
 ```
 
 and update the commit above.
