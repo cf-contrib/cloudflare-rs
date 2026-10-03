@@ -73,8 +73,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let products = products(&spec)?;
     sync_features(&products)?;
 
+    // Every product, client and all, as `full` and `client` would generate it.
     if env::var_os(CHECK).is_some() {
-        generate(config.clone(), spec.clone())?;
+        let every_operation = products.values().flatten().cloned().collect();
+        generate(select(config.clone(), every_operation), spec.clone())?;
     }
 
     // The operations of every product feature that is on.
@@ -98,17 +100,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         return Ok(());
     }
 
-    // The client is generated whether or not `client` is on, because pruning
-    // the types to those the selected operations use is the client's to do.
-    // Without `client`, it's dropped.
-    config.enable_async_client = true;
-    config.client = Some(ClientSection {
-        operations,
-        prune_models: true,
-    });
     let client = env::var_os("CARGO_FEATURE_CLIENT").is_some();
-
-    let (generator, mut result) = generate(config, spec)?;
+    let (generator, mut result) = generate(select(config, operations), spec)?;
     if !client {
         result
             .files
@@ -130,6 +123,18 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+/// Generates `operations` and the types they use. The client is generated
+/// whether or not `client` is on, because pruning the types to those the
+/// operations use is the client's to do. Without `client`, it's dropped.
+fn select(mut config: GeneratorConfig, operations: Vec<String>) -> GeneratorConfig {
+    config.enable_async_client = true;
+    config.client = Some(ClientSection {
+        operations,
+        prune_models: true,
+    });
+    config
+}
+
 fn generate(
     config: GeneratorConfig,
     spec: Value,
@@ -141,25 +146,28 @@ fn generate(
     Ok((generator, result))
 }
 
-/// Every product, and the operationIds in it.
+/// Every product, and its operations as `METHOD /path`: unlike operationIds,
+/// which the document repeats, those are unique.
 fn products(spec: &Value) -> Result<BTreeMap<String, Vec<String>>, Box<dyn Error>> {
     let mut products = BTreeMap::<String, Vec<String>>::new();
     let paths = spec["paths"]
         .as_object()
         .ok_or("the document has no paths")?;
-    for operation in paths
-        .values()
-        .filter_map(Value::as_object)
-        .flat_map(|item| item.values())
-    {
-        let Some(id) = operation["operationId"].as_str() else {
+    for (path, item) in paths {
+        let Some(item) = item.as_object() else {
             continue;
         };
-        let product = match operation["x-fern-sdk-group-name"].as_str() {
-            Some(group) => feature_name(group.split('.').next().unwrap_or(group)),
-            None => UNGROUPED.to_string(),
-        };
-        products.entry(product).or_default().push(id.to_string());
+        for (method, operation) in item {
+            if operation["operationId"].as_str().is_none() {
+                continue;
+            }
+            let selector = format!("{} {path}", method.to_ascii_uppercase());
+            let product = match operation["x-fern-sdk-group-name"].as_str() {
+                Some(group) => feature_name(group.split('.').next().unwrap_or(group)),
+                None => UNGROUPED.to_string(),
+            };
+            products.entry(product).or_default().push(selector);
+        }
     }
     Ok(products)
 }
