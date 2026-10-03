@@ -11,7 +11,7 @@ publish = false
 
 [dependencies]
 # The model types, which every product feature generates.
-base64 = { version = "0.22", optional = true }
+base64 = { version = "0.23", optional = true }
 bytes = { version = "1", features = ["serde"], optional = true }
 chrono = { version = "0.4", features = ["serde"], optional = true }
 serde = { version = "1", features = ["derive"], optional = true }
