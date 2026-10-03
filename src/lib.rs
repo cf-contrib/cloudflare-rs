@@ -48,7 +48,6 @@ pub mod v4 {
         clippy::doc_lazy_continuation,
         clippy::doc_overindented_list_items,
         clippy::double_must_use,
-        clippy::ifs_same_cond,
         clippy::match_single_binding,
         clippy::needless_else,
         clippy::nonminimal_bool,

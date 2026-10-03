@@ -432,8 +432,9 @@ unused_dependencies = "allow"
 
 [build-dependencies]
 # Generates the API from the OpenAPI document, in build.rs. Without the `cli`
-# default it is only the library: no clap, no reqwest.
-openapi-to-rust = { version = "0.19", default-features = false }
+# default it is only the library: no clap, no reqwest. From main until a
+# release has the fixes this needs (gpu-cli/openapi-to-rust#90, #91, #92).
+openapi-to-rust = { git = "https://github.com/gpu-cli/openapi-to-rust", rev = "2e1f1db4ea41642845dc8c122d1dcf34d2159351", default-features = false }
 # Reads each operation's product from the document.
 serde_json = "1"
 

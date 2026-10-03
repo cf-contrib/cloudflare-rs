@@ -74,9 +74,14 @@ let zone = client.zones_0_get("023e105f4ecef8ad9ca31a8372d0c353").await?;
 ```
 
 Method names are the document's `operationId`s, in snake case. They take the
-operation's parameters in the document's order, then its body. Optional
-parameters are `Option`s, so a list operation reads
-`client.zones_get(None::<&str>, None, ..)`.
+operation's parameters in the document's order, then its body, with optional
+ones as `Option`s. An operation with more than three optional parameters, as
+most list operations have, also has a builder, which takes the required ones
+and has a setter for each of the rest:
+
+```rust
+let zones = client.zones_get_builder().name("example.com").per_page(50.0).send().await?;
+```
 
 An error the API answers with is an `ApiOpError::Api`, which holds the status,
 the body, and the body parsed as that operation's error type when it matches
@@ -102,7 +107,9 @@ generator needs, which says what each one is.
 `build.rs` runs [openapi-to-rust](https://github.com/gpu-cli/openapi-to-rust)
 over the two into `OUT_DIR` on every build that changes them, as
 [`openapi-to-rust.toml`](openapi-to-rust.toml) says, for the products that are
-on. None of it is checked in or edited by hand.
+on. None of it is checked in or edited by hand. Until a release of
+openapi-to-rust has the fixes this needs, it's built from a pinned commit of its
+`main`.
 
 The product features in Cargo.toml are generated from the document too, and the
 build fails if they aren't the document's. To rewrite them:
@@ -146,9 +153,6 @@ and take seconds.
 
 ## Known gaps
 
-- There are no per-operation builders. openapi-to-rust can generate them, but in
-  0.19 the ones for a dozen of Cloudflare's operations, whose bodies are unions,
-  don't compile ([gpu-cli/openapi-to-rust#86](https://github.com/gpu-cli/openapi-to-rust/issues/86)).
 - The generator can't encode a multipart field that is a JSON object, so the 13
   operations that take one return `HttpError::Config` without sending anything:
   uploading a Worker's script, content, version or settings (including under
