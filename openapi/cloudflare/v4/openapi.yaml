@@ -4204,7 +4204,7 @@ paths:
               type: object
               properties:
                 auth_credentials:
-                  description: 'Static credential for the upstream MCP server. For auth_type "bearer", either a raw token string (e.g. "sk-abc123"), which is wrapped server-side as `Authorization: Bearer <token>`, or a JSON-encoded object of the form `{"headers":{"Header-Name":"value",...}}` for custom or multiple static headers (e.g. Cloudflare Access service tokens: `{"headers":{"cf-access-client-id":"...","cf-access-client-secret":"..."}}`).'
+                  description: 'Credential configuration for the upstream MCP server. For auth_type "bearer", either a raw token string (e.g. "sk-abc123"), which is wrapped server-side as `Authorization: Bearer <token>`, or a JSON-encoded object of the form `{"headers":{"Header-Name":"value",...}}` for custom or multiple static headers (e.g. Cloudflare Access service tokens: `{"headers":{"cf-access-client-id":"...","cf-access-client-secret":"..."}}`). For auth_type "oauth" with a pre-registered client, send a JSON-encoded object containing `auth_mode:"manual"`, `config.authorization_endpoint`, `config.token_endpoint`, and `registration_info.client_id`. Also provide `registration_info.redirect_uris` unless `is_shared_oauth_callback_enabled` is true. Optional fields include `config.issuer`, `config.revocation_endpoint`, `registration_info.scope`, and `registration_info.token_endpoint_auth_method`. Send the client secret in the separate `client_secret` field. Omit `auth_credentials` on update to preserve the existing configuration.'
                   type: string
                   example: sk-my-bearer-token
                   x-sensitive: true
@@ -4217,7 +4217,7 @@ paths:
                     - bearer
                     - unauthenticated
                 client_secret:
-                  description: Pre-registered OAuth client_secret. Write-only - accepted on create/update when auth_credentials.auth_mode is 'manual'. Stored AES-GCM-encrypted in server_oauth_secrets; never returned by read endpoints.
+                  description: Pre-registered OAuth client_secret. Write-only - accepted on create/update when auth_credentials.auth_mode is 'manual'. Required when creating a manual OAuth server or converting an existing server to manual mode. Omit it on update to preserve the existing secret; provide it to rotate the secret. Stored AES-GCM-encrypted in server_oauth_secrets; never returned by read endpoints.
                   type: string
                   writeOnly: true
                   x-sensitive: true
@@ -5208,12 +5208,12 @@ paths:
               type: object
               properties:
                 auth_credentials:
-                  description: 'Static credential for the upstream MCP server. For auth_type "bearer", either a raw token string (e.g. "sk-abc123"), which is wrapped server-side as `Authorization: Bearer <token>`, or a JSON-encoded object of the form `{"headers":{"Header-Name":"value",...}}` for custom or multiple static headers (e.g. Cloudflare Access service tokens: `{"headers":{"cf-access-client-id":"...","cf-access-client-secret":"..."}}`).'
+                  description: 'Credential configuration for the upstream MCP server. For auth_type "bearer", either a raw token string (e.g. "sk-abc123"), which is wrapped server-side as `Authorization: Bearer <token>`, or a JSON-encoded object of the form `{"headers":{"Header-Name":"value",...}}` for custom or multiple static headers (e.g. Cloudflare Access service tokens: `{"headers":{"cf-access-client-id":"...","cf-access-client-secret":"..."}}`). For auth_type "oauth" with a pre-registered client, send a JSON-encoded object containing `auth_mode:"manual"`, `config.authorization_endpoint`, `config.token_endpoint`, and `registration_info.client_id`. Also provide `registration_info.redirect_uris` unless `is_shared_oauth_callback_enabled` is true. Optional fields include `config.issuer`, `config.revocation_endpoint`, `registration_info.scope`, and `registration_info.token_endpoint_auth_method`. Send the client secret in the separate `client_secret` field. Omit `auth_credentials` on update to preserve the existing configuration.'
                   type: string
                   example: sk-my-bearer-token
                   x-sensitive: true
                 client_secret:
-                  description: Pre-registered OAuth client_secret. Write-only - accepted on create/update when auth_credentials.auth_mode is 'manual'. Stored AES-GCM-encrypted in server_oauth_secrets; never returned by read endpoints.
+                  description: Pre-registered OAuth client_secret. Write-only - accepted on create/update when auth_credentials.auth_mode is 'manual'. Required when creating a manual OAuth server or converting an existing server to manual mode. Omit it on update to preserve the existing secret; provide it to rotate the secret. Stored AES-GCM-encrypted in server_oauth_secrets; never returned by read endpoints.
                   type: string
                   writeOnly: true
                   x-sensitive: true
@@ -9179,9 +9179,6 @@ paths:
                   $ref: '#/components/schemas/access_warp_auth_non_browser_401'
                 warp_auth_session_duration:
                   $ref: '#/components/schemas/access_warp_auth_session_duration'
-              required:
-                - name
-                - auth_domain
       responses:
         '201':
           description: Create your Zero Trust organization response
@@ -11118,8 +11115,8 @@ paths:
   /accounts/{account_id}/access/users/{user_id}/mfa_authenticators/{authenticator_id}:
     delete:
       operationId: zero-trust-users-delete-mfa-authenticator
-      summary: Delete a user's MFA device
-      description: Deletes a specific MFA device, including a PIV key or FIDO2 key enrollment, for a user. This action is only available if MFA is turned on for the organization. Successful deletion revokes the enrollment and returns a null result.
+      summary: Delete a user's authenticator
+      description: Deletes a specific MFA device or passkey, including a PIV key or FIDO2 key enrollment, for a user. Admin deletion remains available when MFA is disabled. Successful deletion revokes the enrollment and returns a null result.
       parameters:
         - name: user_id
           in: path
@@ -11158,6 +11155,50 @@ paths:
       x-api-token-group: null
       x-fern-availability: generally-available
       x-fern-sdk-group-name: zero-trust.users.mfa.authenticators
+      x-fern-sdk-method-name: delete
+  /accounts/{account_id}/access/users/{user_id}/passkeys/{authenticator_id}:
+    delete:
+      operationId: zero-trust-users-delete-passkey
+      summary: Delete a user's passkey
+      description: Alias of the authenticator deletion endpoint for passkey management. The identifier is the passkey's authenticator ID from the last-seen identity response. Successful deletion revokes the enrollment and returns a null result.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/access_uuid'
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/access_identifier'
+        - name: authenticator_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/access_authenticator_id'
+      responses:
+        '200':
+          description: Delete passkey response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/access_delete_authenticator_response'
+        4XX:
+          description: Delete passkey response failure.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/access_api-response-common-failure'
+      security:
+        - api_token: []
+        - api_email: []
+          api_key: []
+      tags:
+        - Zero Trust users
+      x-api-token-group: null
+      x-fern-availability: generally-available
+      x-fern-sdk-group-name: zero-trust.users.passkeys
       x-fern-sdk-method-name: delete
   /accounts/{account_id}/addressing/address_maps:
     get:
@@ -53183,6 +53224,71 @@ paths:
       x-fern-sdk-group-name: analytics_engine.sql
       x-fern-sdk-method-name: query
       x-forge-hidden: true
+  /accounts/{account_id}/argo/count_zones_enabled:
+    get:
+      operationId: argo-smart-routing-get-count-zones-enabled-for-account
+      summary: Get count of zones with Argo Smart Routing enabled for account
+      description: Returns the number of zones that have Argo Smart Routing enabled for the specified account.
+      parameters:
+        - name: account_id
+          in: path
+          description: Identifier of the account.
+          required: true
+          schema:
+            $ref: '#/components/schemas/argo-config_identifier'
+      responses:
+        '200':
+          description: Count of zones with Argo Smart Routing enabled.
+          content:
+            application/json:
+              examples:
+                success:
+                  summary: Successful response
+                  value:
+                    errors: []
+                    messages: []
+                    result: 5
+                    success: true
+              schema:
+                $ref: '#/components/schemas/argo-config_count_zones_response'
+        4XX:
+          description: Count zones enabled failure.
+          content:
+            application/json:
+              examples:
+                error:
+                  summary: Error response
+                  value:
+                    errors:
+                      - code: 7003
+                        message: No route for the URI
+                    messages: []
+                    result: null
+                    success: false
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/argo-config_api_response_common_failure'
+      security:
+        - api_token: []
+        - api_email: []
+          api_key: []
+      tags:
+        - Argo Smart Routing
+      x-api-token-group:
+        - Trust and Safety Write
+        - Trust and Safety Read
+        - Zone Read
+        - Zone Write
+      x-cfPermissionsRequired:
+        enum:
+          - '#zone_settings:read'
+      x-cfPlanAvailability:
+        business: true
+        enterprise: true
+        free: true
+        pro: true
+      x-fern-sdk-group-name: argo.smart-routing
+      x-fern-sdk-method-name: count-zones-enabled-for-account
   /accounts/{account_id}/artifacts/namespaces:
     get:
       operationId: artifacts_namespaces_list
@@ -120173,8 +120279,10 @@ paths:
   /accounts/{account_id}/data-security/posture/policies/logs:
     get:
       operationId: ListPolicyLogs
-      summary: List policy invocation logs
+      summary: List policy invocation logs (deprecated)
       description: |
+        Deprecated: use `GET /accounts/{account_id}/data-security/posture/policy_logs`, which returns identical results. This path will be removed.
+
         Returns a list of policy invocation logs for the given account, sourced from ClickHouse via Ready Analytics. Each entry represents one execution of a policy against a finding instance, including the actions (remediation jobs and webhooks) it dispatched.
 
         Results are scoped to the requesting account's CASB integrations. The `integration_id` query parameter, when supplied, is intersected against the account's integration allowlist; values outside the allowlist are silently dropped.
@@ -120255,6 +120363,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/posture-api_error-response'
+      deprecated: true
       security:
         - api_token: []
       tags:
@@ -144297,7 +144406,7 @@ paths:
       tags:
         - Zero Trust SSH Settings
       x-fern-availability: generally-available
-      x-fern-sdk-group-name: zero-trust.gateway.audit-ssh-settings
+      x-fern-sdk-group-name: zero-trust.access.infrastructure.audit-ssh-settings
       x-fern-sdk-method-name: get
     put:
       operationId: zero-trust-update-audit-ssh-settings
@@ -144343,7 +144452,7 @@ paths:
       tags:
         - Zero Trust SSH Settings
       x-fern-availability: generally-available
-      x-fern-sdk-group-name: zero-trust.gateway.audit-ssh-settings
+      x-fern-sdk-group-name: zero-trust.access.infrastructure.audit-ssh-settings
       x-fern-sdk-method-name: update
   /accounts/{account_id}/gateway/audit_ssh_settings/rotate_seed:
     post:
@@ -144379,7 +144488,7 @@ paths:
       tags:
         - Zero Trust SSH Settings
       x-fern-availability: generally-available
-      x-fern-sdk-group-name: zero-trust.gateway.audit-ssh-settings
+      x-fern-sdk-group-name: zero-trust.access.infrastructure.audit-ssh-settings
       x-fern-sdk-method-name: rotate-seed
   /accounts/{account_id}/gateway/categories:
     get:
@@ -181012,14 +181121,201 @@ paths:
       x-fern-availability: generally-available
       x-fern-sdk-group-name: r2.buckets.jobs
       x-fern-sdk-method-name: list
+    post:
+      operationId: r2-create-bucket-job
+      summary: Create Bucket Job
+      description: |
+        Creates a background job for an R2 bucket. The `jobType` field selects the job:
+
+        - **`prefixDelete`**: deletes every object whose key begins with `prefix`. A non-empty
+          prefix must end in `/`. An empty prefix (`""`) empties the entire bucket.
+        - **`storageClassMigration`**: migrates every object in the bucket between storage
+          classes. `sourceStorageClass` and `destinationStorageClass` must be provided together
+          and must differ; omitting both migrates from `InfrequentAccess` to `Standard`.
+
+        Poll the returned `id` with the Get Bucket Job endpoint. Small prefix-delete jobs can
+        finish synchronously and return `COMPLETED`. Objects uploaded after a background job
+        starts are not affected by that job.
+
+        For prefix-delete jobs: abort active multipart uploads before submitting the request,
+        since a synchronously completed job does not abort them, and avoid writing objects or
+        starting multipart uploads while a bucket-emptying job is in progress. Each request
+        creates a distinct job, and the number of active prefix-delete jobs is limited per
+        bucket; wait for an existing job to finish before retrying a request rejected with
+        HTTP 429. A bucket cannot be emptied while event notifications are configured (HTTP 409
+        / error code 10083). To protect a bucket with R2 Data Catalog enabled, send the
+        `cf-r2-data-catalog-check` header; a conflict is returned with HTTP 409 / error code
+        10081.
+
+        Prefix-delete jobs require permission to delete objects; storage-class migration jobs
+        require permission to write to the bucket.
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/r2_account_identifier'
+        - name: bucket_name
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/r2_bucket_name'
+        - $ref: '#/components/parameters/r2_cf-r2-jurisdiction'
+        - name: cf-r2-data-catalog-check
+          in: header
+          description: For prefix-delete jobs, set this header to reject the request when R2 Data Catalog is enabled for the bucket.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            examples:
+              delete-prefix:
+                summary: Delete every object under a prefix
+                value:
+                  jobType: prefixDelete
+                  prefix: logs/2026/
+              empty-bucket:
+                summary: Empty the entire bucket
+                value:
+                  jobType: prefixDelete
+                  prefix: ''
+              migrate-to-infrequent-access:
+                summary: Migrate every object to Infrequent Access
+                value:
+                  destinationStorageClass: InfrequentAccess
+                  jobType: storageClassMigration
+                  sourceStorageClass: Standard
+            schema:
+              discriminator:
+                mapping:
+                  prefixDelete: '#/components/schemas/r2_create_prefix_delete_job_request'
+                  storageClassMigration: '#/components/schemas/r2_create_storage_class_migration_job_request'
+                propertyName: jobType
+              oneOf:
+                - $ref: '#/components/schemas/r2_r2_create_prefix_delete_job_request'
+                - $ref: '#/components/schemas/r2_r2_create_storage_class_migration_job_request'
+      responses:
+        '200':
+          description: The created job.
+          content:
+            application/json:
+              examples:
+                empty-bucket-completed:
+                  summary: A small or already empty bucket completed immediately
+                  value:
+                    errors: []
+                    messages: []
+                    result:
+                      endTime: 2026-07-20T12:00:00Z
+                      id: 69f94626-a3fe-47bc-9615-e791b4d53c53
+                      jobType: prefixDelete
+                      prefixDelete:
+                        deletedObjects: 0
+                        isBucketClear: true
+                        prefix: ''
+                      startTime: 2026-07-20T12:00:00Z
+                      status: COMPLETED
+                    success: true
+                empty-bucket-submitted:
+                  summary: Empty Bucket job submitted
+                  value:
+                    errors: []
+                    messages: []
+                    result:
+                      id: 7f24658b-31d7-4b91-9a12-cb5a2c99b294
+                      jobType: prefixDelete
+                      prefixDelete:
+                        deletedObjects: 0
+                        isBucketClear: true
+                        prefix: ''
+                      startTime: 2026-07-20T12:00:00Z
+                      status: ENQUEUED
+                    success: true
+                migration-submitted:
+                  summary: Storage-class migration job submitted
+                  value:
+                    errors: []
+                    messages: []
+                    result:
+                      id: 3c1f9a52-0b8e-4f5d-9d0e-4a1b2c3d4e5f
+                      jobType: storageClassMigration
+                      startTime: 2026-09-04T12:00:00Z
+                      status: ENQUEUED
+                      storageClassMigration:
+                        destinationStorageClass: InfrequentAccess
+                        migratedObjects: 0
+                        sourceStorageClass: Standard
+                    success: true
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/r2_v4_response'
+                  - properties:
+                      result:
+                        $ref: '#/components/schemas/r2_r2_bucket_job'
+                    type: object
+        '409':
+          description: |
+            Prefix-delete conflict. Event notification rules are still configured (error code
+            10083), or the Data Catalog check was requested and R2 Data Catalog is enabled for
+            the bucket (error code 10081). Remove the conflicting configuration before retrying.
+          content:
+            application/json:
+              examples:
+                event-notifications-active:
+                  summary: Event notification rules must be removed first
+                  value:
+                    errors:
+                      - code: 10083
+                        message: Remove all event notification rules from bucket (example-bucket) before emptying it (account 023e105f4ecef8ad9ca31a8372d0c353).
+                    messages:
+                      - Request failed.
+                    result: null
+                    success: false
+              schema:
+                $ref: '#/components/schemas/r2_v4_response_failure'
+        '429':
+          description: Too many active prefix-delete or bucket-emptying jobs. Wait for an existing job to finish, then retry.
+          content:
+            application/json:
+              examples:
+                too-many-jobs:
+                  summary: The per-bucket active job limit was reached
+                  value:
+                    errors:
+                      - code: 10058
+                        message: Too many concurrent prefix delete jobs for this bucket. Please wait for existing jobs to complete.
+                    messages:
+                      - Request failed.
+                    result: null
+                    success: false
+              schema:
+                $ref: '#/components/schemas/r2_v4_response_failure'
+        4XX:
+          description: Create Bucket Job response failure. The request body may be invalid, the bucket may not exist, or the caller may not be authorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/r2_v4_response_failure'
+      security:
+        - api_token: []
+      tags:
+        - R2 Bucket
+      x-api-token-group:
+        - Workers R2 Storage Write
+      x-fern-availability: generally-available
+      x-fern-sdk-group-name: r2.buckets.jobs
+      x-fern-sdk-method-name: create
+      x-forge-require-confirmation: This starts a background job that either permanently deletes every object under the given prefix (every object in the bucket for an empty prefix) or migrates every object in the bucket between storage classes.
   /accounts/{account_id}/r2/buckets/{bucket_name}/jobs/{job_id}:
     get:
       operationId: r2-get-bucket-job
       summary: Get Bucket Job
       description: |
         Gets the current status of a background job of any type for an R2 bucket. Poll this
-        endpoint with the job identifier returned when the operation was submitted until the
-        status is `COMPLETED`, `FAILED`, or `CANCELLED`.
+        endpoint with the job identifier returned by Create Bucket Job until the status is
+        `COMPLETED`, `FAILED`, or `CANCELLED`.
       parameters:
         - name: account_id
           in: path
@@ -181406,32 +181702,20 @@ paths:
   /accounts/{account_id}/r2/buckets/{bucket_name}/objects:
     delete:
       operationId: r2-delete-objects
-      summary: Delete Objects or Empty a Bucket
+      summary: Delete Objects
       description: |
-        Deletes objects from an R2 bucket. Three modes are supported:
+        Deletes the listed objects from an R2 bucket. Provide a JSON array of 1 to 1000 object
+        keys in the request body.
 
-        1. **Delete by list** (default): Provide a JSON array of object keys in the request body.
-           All listed objects are deleted; per-key errors are reported in the response.
-        2. **Delete by prefix**: Provide a non-empty `prefix` query parameter and no request body
-           to delete every object whose key begins with that prefix.
-        3. **Empty bucket**: Provide the `prefix` query parameter with an empty value (`?prefix=`)
-           and no request body to delete all objects in the bucket.
+        If any key cannot be deleted (for example, because it does not exist or is locked), the
+        remaining keys are still deleted, but the response is HTTP 200 with `success: false`,
+        `result: null` and one entry in `errors` per failed key. The entries in `errors` do not
+        identify which key failed.
 
-        Prefix and empty-bucket requests return a job descriptor. Small jobs can finish
-        synchronously and return `COMPLETED`; larger jobs continue in the background. Poll the
-        returned `id` with the Get Bucket Job endpoint. Objects uploaded after a background job
-        starts are not deleted by that job. Abort active multipart uploads before submitting the
-        request; a synchronously completed job does not abort them. Avoid writing objects or
-        starting multipart uploads while a bucket-emptying job is in progress.
-
-        Each repeated or concurrent request creates a distinct job. The number of active jobs is
-        limited per bucket; wait for an existing job to finish before retrying a request rejected
-        with HTTP 429.
-
-        A bucket cannot be emptied while event notifications are configured. Remove the event
-        notification rules and retry requests rejected with HTTP 409 / error code 10034. To
-        protect a bucket with R2 Data Catalog enabled, send the `cf-r2-data-catalog-check` header;
-        a conflict is returned with HTTP 409 / error code 10081.
+        To delete every object under a prefix, or to empty a bucket, create a `prefixDelete` job
+        with the Create Bucket Job endpoint instead. The `prefix` query parameter on this endpoint
+        is deprecated; it creates the same job, but responses to it carry a `Deprecation` header
+        and a message pointing to Create Bucket Job.
 
         For most workloads, we recommend using R2's [S3-compatible API](https://developers.cloudflare.com/r2/api/s3/api/) or a [Worker with an R2 binding](https://developers.cloudflare.com/r2/api/workers/workers-api-reference/) instead.
       parameters:
@@ -181448,23 +181732,22 @@ paths:
         - $ref: '#/components/parameters/r2_cf-r2-jurisdiction'
         - name: prefix
           in: query
+          description: |
+            Deprecated. Create a `prefixDelete` job with the Create Bucket Job endpoint instead.
+            When present, the request body is ignored and a prefix-delete job is created for this
+            prefix, exactly as Create Bucket Job does; an empty value empties the bucket. The
+            response is the job descriptor, with a `Deprecation` header and a deprecation message
+            in `messages`.
           schema:
-            description: |
-              When present, switches the operation to prefix-delete mode. A non-empty value must
-              end in `/` and deletes keys beginning with that prefix. Preserve an empty value
-              (`?prefix=`) to empty the entire bucket. Omitting this parameter instead selects
-              delete-by-list mode and requires a JSON request body.
             type: string
-            example: ''
+          deprecated: true
         - name: cf-r2-data-catalog-check
           in: header
           description: Set this header to reject the operation when R2 Data Catalog is enabled for the bucket.
           schema:
             type: string
       requestBody:
-        description: |
-          Required for "delete by list" mode (when `prefix` query parameter is omitted).
-          A JSON array of object keys to delete. Ignored when `prefix` is provided.
+        description: A JSON array of 1 to 1000 object keys to delete. Required unless the deprecated `prefix` parameter is present.
         content:
           application/json:
             schema:
@@ -181474,107 +181757,81 @@ paths:
               example:
                 - path/to/object-a.txt
                 - path/to/object-b.txt
+              maxItems: 1000
+              minItems: 1
       responses:
         '200':
           description: |
-            Delete Objects response. Body shape depends on the operation mode:
-            - "delete by list" returns an array of `{ key }` entries for successfully deleted objects;
-            - "delete by prefix" returns the prefix-delete job descriptor.
+            Delete Objects response. When every key is deleted, `result` contains a `{ key }` entry
+            for each deleted object. When any key fails, `success` is `false`, `result` is `null`
+            and `errors` has one entry per failed key; the other keys are still deleted. With the
+            deprecated `prefix` parameter, `result` is the created prefix-delete job.
           content:
             application/json:
               examples:
-                empty-bucket-completed:
-                  summary: A small or already empty bucket completed immediately
+                all-deleted:
+                  summary: Every key was deleted
                   value:
                     errors: []
                     messages: []
                     result:
-                      endTime: 2026-07-20T12:00:00Z
-                      id: 69f94626-a3fe-47bc-9615-e791b4d53c53
-                      jobType: prefixDelete
-                      prefixDelete:
-                        deletedObjects: 0
-                        isBucketClear: true
-                        prefix: ''
-                      startTime: 2026-07-20T12:00:00Z
-                      status: COMPLETED
+                      - key: path/to/object-a.txt
+                      - key: path/to/object-b.txt
                     success: true
-                empty-bucket-submitted:
-                  summary: Empty Bucket job submitted
+                partial-failure:
+                  summary: One key did not exist; the other key was deleted
                   value:
-                    errors: []
+                    errors:
+                      - code: 10007
+                        message: The specified key does not exist.
                     messages: []
-                    result:
-                      id: 7f24658b-31d7-4b91-9a12-cb5a2c99b294
-                      jobType: prefixDelete
-                      prefixDelete:
-                        deletedObjects: 0
-                        isBucketClear: true
-                        prefix: ''
-                      startTime: 2026-07-20T12:00:00Z
-                      status: ENQUEUED
-                    success: true
+                    result: null
+                    success: false
               schema:
-                type: object
-                properties:
-                  errors:
-                    $ref: '#/components/schemas/r2_errors'
-                  messages:
-                    $ref: '#/components/schemas/r2_messages'
-                  result:
-                    oneOf:
-                      - description: Per-key delete results returned in "delete by list" mode.
+                oneOf:
+                  - properties:
+                      errors:
+                        $ref: '#/components/schemas/r2_errors'
+                      messages:
+                        $ref: '#/components/schemas/r2_messages'
+                      result:
+                        description: The deleted objects.
+                        type: array
                         items:
                           $ref: '#/components/schemas/r2_r2_delete_object_result'
-                        type: array
-                      - $ref: '#/components/schemas/r2_r2_prefix_delete_job'
-                  success:
-                    description: Whether the API call was successful.
-                    type: boolean
-                    enum:
-                      - true
-                required:
-                  - success
-                  - errors
-                  - messages
-                  - result
-        '409':
-          description: |
-            Empty Bucket conflict. Event notification rules are still configured (error code
-            10034), or the Data Catalog check was requested and R2 Data Catalog is enabled for
-            the bucket (error code 10081). Remove the conflicting configuration before retrying.
-          content:
-            application/json:
-              examples:
-                event-notifications-active:
-                  summary: Event notification rules must be removed first
-                  value:
-                    errors:
-                      - code: 10034
-                        message: Remove all event notification rules from bucket (example-bucket) before emptying it (account 023e105f4ecef8ad9ca31a8372d0c353).
-                    messages:
-                      - Request failed.
-                    result: null
-                    success: false
-              schema:
-                $ref: '#/components/schemas/r2_v4_response_failure'
-        '429':
-          description: Too many active prefix-delete or bucket-emptying jobs. Wait for an existing job to finish, then retry.
-          content:
-            application/json:
-              examples:
-                too-many-jobs:
-                  summary: The per-bucket active job limit was reached
-                  value:
-                    errors:
-                      - code: 10058
-                        message: Too many concurrent prefix delete jobs for this bucket. Please wait for existing jobs to complete.
-                    messages:
-                      - Request failed.
-                    result: null
-                    success: false
-              schema:
-                $ref: '#/components/schemas/r2_v4_response_failure'
+                      success:
+                        description: Whether the API call was successful.
+                        type: boolean
+                        enum:
+                          - true
+                    required:
+                      - success
+                      - errors
+                      - messages
+                      - result
+                    title: All keys deleted
+                    type: object
+                  - $ref: '#/components/schemas/r2_v4_response_failure'
+                  - deprecated: true
+                    properties:
+                      errors:
+                        $ref: '#/components/schemas/r2_errors'
+                      messages:
+                        $ref: '#/components/schemas/r2_messages'
+                      result:
+                        $ref: '#/components/schemas/r2_r2_prefix_delete_job'
+                      success:
+                        description: Whether the API call was successful.
+                        type: boolean
+                        enum:
+                          - true
+                    required:
+                      - success
+                      - errors
+                      - messages
+                      - result
+                    title: Prefix-delete job created (deprecated)
+                    type: object
         4XX:
           description: Delete Objects response failure. The bucket may not exist, the request may be invalid, or the caller may not be authorized.
           content:
@@ -181590,8 +181847,7 @@ paths:
       x-fern-availability: generally-available
       x-fern-sdk-group-name: r2.objects
       x-fern-sdk-method-name: bulk-delete
-      x-forge-hidden: true
-      x-forge-require-confirmation: This permanently deletes the selected R2 objects. An explicitly empty prefix deletes every object in the bucket while retaining the bucket itself.
+      x-forge-require-confirmation: This permanently deletes the listed R2 objects. With the deprecated `prefix` parameter it deletes every object under that prefix, and an empty prefix empties the bucket.
     get:
       operationId: r2-list-objects
       summary: List Objects
@@ -181683,7 +181939,6 @@ paths:
       x-fern-availability: generally-available
       x-fern-sdk-group-name: r2.objects
       x-fern-sdk-method-name: list
-      x-forge-hidden: true
   /accounts/{account_id}/r2/buckets/{bucket_name}/objects/{object_key}:
     delete:
       operationId: r2-delete-object
@@ -223576,7 +223831,6 @@ paths:
       x-fern-ignore: true
       x-fern-sdk-group-name: observability.metrics-export
       x-fern-sdk-method-name: list
-      x-forge-hidden: true
     parameters:
       - name: account_id
         in: path
@@ -223825,7 +224079,6 @@ paths:
       x-fern-ignore: true
       x-fern-sdk-group-name: observability.metrics-export
       x-fern-sdk-method-name: upsert
-      x-forge-hidden: true
   /accounts/{account_id}/workers/observability/queries:
     get:
       operationId: queries.list
@@ -226488,7 +226741,6 @@ paths:
       x-fern-ignore: true
       x-fern-sdk-group-name: observability.telemetry
       x-fern-sdk-method-name: live-tail
-      x-forge-hidden: true
   /accounts/{account_id}/workers/observability/telemetry/live-tail/heartbeat:
     parameters:
       - name: account_id
@@ -226631,7 +226883,6 @@ paths:
       x-fern-ignore: true
       x-fern-sdk-group-name: observability.telemetry
       x-fern-sdk-method-name: heartbeat
-      x-forge-hidden: true
   /accounts/{account_id}/workers/observability/telemetry/query:
     parameters:
       - name: account_id
@@ -227948,7 +228199,6 @@ paths:
       x-fern-ignore: true
       x-fern-sdk-group-name: observability
       x-fern-sdk-method-name: usage
-      x-forge-hidden: true
     parameters:
       - name: account_id
         in: path
@@ -239291,7 +239541,7 @@ paths:
     get:
       operationId: sql-api-query-get-account-scoped
       summary: Query analytics datasets
-      description: Executes a SQL query scoped to the account in the request path. API Gateway forwards the path account in its signed JWT to the existing SQL API handler, so an accountTag predicate or JSON scope is not required. Explicit account scope must match the path account. Any zone restrictions must belong to that account. Query parameters, time ranges, output formats, authorization, and responses follow the legacy query endpoint.
+      description: Executes a SQL query scoped to the account in the request path. API Gateway preserves the account path, and SQL API requires it to match the signed JWT account, so an accountTag predicate or JSON scope is not required. Explicit account scope must match the path account. Any zone restrictions must belong to that account. Query parameters, time ranges, output formats, authorization, and responses follow the legacy query endpoint.
       parameters:
         - name: account_tag
           in: path
@@ -239342,7 +239592,7 @@ paths:
     post:
       operationId: sql-api-query-post-account-scoped
       summary: Query analytics datasets
-      description: Executes a SQL query scoped to the account in the request path. API Gateway forwards the path account in its signed JWT to the existing SQL API handler, so an accountTag predicate or JSON scope is not required. Explicit account scope must match the path account. Any zone restrictions must belong to that account. Query parameters, time ranges, output formats, authorization, and responses follow the legacy query endpoint.
+      description: Executes a SQL query scoped to the account in the request path. API Gateway preserves the account path, and SQL API requires it to match the signed JWT account, so an accountTag predicate or JSON scope is not required. Explicit account scope must match the path account. Any zone restrictions must belong to that account. Query parameters, time ranges, output formats, authorization, and responses follow the legacy query endpoint.
       parameters:
         - name: account_tag
           in: path
@@ -239396,7 +239646,7 @@ paths:
     get:
       operationId: sql-api-introspection-account-scoped
       summary: List available analytics datasets
-      description: Returns the dataset catalogue for the account in the request path. API Gateway forwards the path account in its signed JWT to the existing introspection handler; account_tag is not required as a query parameter. If supplied, it must match the path account. Dataset and column discovery options are identical to the legacy introspection endpoint.
+      description: Returns the dataset catalogue for the account in the request path. API Gateway preserves the account path, and SQL API requires it to match the signed JWT account; account_tag is not required as a query parameter. If supplied, it must match the path account. Dataset and column discovery options are identical to the legacy introspection endpoint.
       parameters:
         - name: account_tag
           in: path
@@ -340628,6 +340878,64 @@ paths:
       x-fern-sdk-method-name: get
       x-stainless-deprecation-message: |
         This endpoint is deprecated and will be removed in a future version. Please use the GraphQL Analytics API instead: https://developers.cloudflare.com/analytics/graphql-api/ It provides equivalent data and more features, including the ability to select only the metrics you need. Migration guide: https://developers.cloudflare.com/analytics/migration-guides/zone-analytics/
+  /user/argo/count_zones_enabled:
+    get:
+      operationId: argo-smart-routing-get-count-zones-enabled-for-user
+      summary: Get count of zones with Argo Smart Routing enabled for user
+      description: Returns the number of zones that have Argo Smart Routing enabled for the authenticated user.
+      responses:
+        '200':
+          description: Count of zones with Argo Smart Routing enabled.
+          content:
+            application/json:
+              examples:
+                success:
+                  summary: Successful response
+                  value:
+                    errors: []
+                    messages: []
+                    result: 3
+                    success: true
+              schema:
+                $ref: '#/components/schemas/argo-config_count_zones_response'
+        4XX:
+          description: Count zones enabled failure.
+          content:
+            application/json:
+              examples:
+                error:
+                  summary: Error response
+                  value:
+                    errors:
+                      - code: 7003
+                        message: No route for the URI
+                    messages: []
+                    result: null
+                    success: false
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/argo-config_api_response_common_failure'
+      security:
+        - api_token: []
+        - api_email: []
+          api_key: []
+      tags:
+        - Argo Smart Routing
+      x-api-token-group:
+        - Trust and Safety Write
+        - Trust and Safety Read
+        - Zone Read
+        - Zone Write
+      x-cfPermissionsRequired:
+        enum:
+          - '#zone_settings:read'
+      x-cfPlanAvailability:
+        business: true
+        enterprise: true
+        free: true
+        pro: true
+      x-fern-sdk-group-name: argo.smart-routing
+      x-fern-sdk-method-name: count-zones-enabled-for-user
   /user/audit_logs:
     get:
       operationId: audit-logs-get-user-audit-logs
@@ -345636,9 +345944,6 @@ paths:
                   $ref: '#/components/schemas/access_ui_read_only_toggle_reason'
                 user_seat_expiration_inactive_time:
                   $ref: '#/components/schemas/access_user_seat_expiration_inactive_time-2'
-              required:
-                - name
-                - auth_domain
       responses:
         '201':
           description: Create your Zero Trust organization response
@@ -374198,7 +374503,7 @@ paths:
         - $ref: '#/components/parameters/security-center_partnerAssetPerPage'
       responses:
         '200':
-          description: 'The request was successful. CSV output is available to premium accounts when requested with `Accept: text/csv`.'
+          description: 'The request was successful. CSV output is available when requested with `Accept: text/csv`.'
           headers:
             X-Collection-Total:
               $ref: '#/components/headers/security-center_collectionTotal'
@@ -389635,12 +389940,12 @@ components:
         - auth_context
       title: Authentication Context
     access_auth_domain:
-      description: The unique subdomain assigned to your Zero Trust organization.
+      description: The unique subdomain assigned to your Zero Trust organization. If omitted on creation, a unique subdomain is auto-generated in the format `adjective-noun-hex4` (e.g. `frosty-moon-7a3b.cloudflareaccess.com`).
       type: string
       example: test.cloudflareaccess.com
       x-auditable: true
     access_auth_domain-2:
-      description: The unique subdomain assigned to your Zero Trust organization.
+      description: The unique subdomain assigned to your Zero Trust organization. Auto-generated if omitted on creation.
       type: string
       example: test.cloudflareaccess.com
     access_authentication_method_rule:
@@ -392251,6 +392556,25 @@ components:
               type: object
               allOf:
                 - $ref: '#/components/schemas/access_identity'
+                - properties:
+                    passkeys:
+                      description: Active passkey enrollments for the user.
+                      type: array
+                      items:
+                        properties:
+                          created_at:
+                            type: string
+                            format: date-time
+                          id:
+                            description: Authenticator ID used to delete the passkey.
+                            type: string
+                          last_used_at:
+                            type: string
+                            format: date-time
+                          name:
+                            type: string
+                        type: object
+                  type: object
           type: object
     access_last_successful_login:
       description: The time at which the user last successfully logged in.
@@ -392567,7 +392891,7 @@ components:
       default: false
       x-auditable: true
     access_name:
-      description: The name of your Zero Trust organization.
+      description: The name of your Zero Trust organization. When omitted on creation, defaults to the provided auth_domain; when both are omitted, defaults to the auto-generated subdomain slug (e.g. frosty-moon-7a3b).
       type: string
       example: Widget Corps Internal Applications
       x-auditable: true
@@ -392628,7 +392952,7 @@ components:
       type: string
       example: YubiKey 5 NFC
     access_name-15:
-      description: The name of your Zero Trust organization.
+      description: The name of your Zero Trust organization. When omitted on creation, defaults to the provided auth_domain; when both are omitted, defaults to the auto-generated subdomain.
       type: string
       example: Widget Corps Internal Applications
     access_name-16:
@@ -401583,6 +401907,29 @@ components:
         - errors
         - messages
         - result
+    argo-config_count_zones_response:
+      type: object
+      properties:
+        errors:
+          $ref: '#/components/schemas/argo-config_messages'
+        messages:
+          $ref: '#/components/schemas/argo-config_messages'
+        result:
+          description: The number of zones with Argo Smart Routing enabled.
+          type: integer
+          example: 3
+          minimum: 0
+        success:
+          description: Describes a successful API response.
+          type: boolean
+          example: true
+          enum:
+            - true
+      required:
+        - success
+        - errors
+        - messages
+        - result
     argo-config_editable:
       description: Specifies if the setting is editable.
       type: boolean
@@ -403842,7 +404189,7 @@ components:
       description: Usage filters. Filters of different kinds are combined with AND, so a record must match every filter present to be returned.
       type: object
       properties:
-        MetricIds:
+        BillableMetricIds:
           description: Restrict results to rows whose `x_BillableMetricId` matches one of these billable metric ids (e.g. `workers_standard_requests`). Values must be unique.
           type: array
           items:
@@ -403965,6 +404312,13 @@ components:
             $ref: '#/components/schemas/billable-usage-api_v2_group_by'
           maxItems: 2
           uniqueItems: true
+        Metric:
+          description: Type of cost/usage records to retrieve. `usage` returns unrated usage quantities. Unrelated to `FilterBy.BillableMetricIds`. Defaults to `usage` when omitted.
+          type: string
+          example: usage
+          default: usage
+          enum:
+            - usage
         TimePeriod:
           $ref: '#/components/schemas/billable-usage-api_v2_time_period'
       additionalProperties: false
@@ -404873,6 +405227,7 @@ components:
         - action
         - userEmail
         - registrationId
+        - eventId
         - policyId
         - url
         - matchedDlpProfiles
@@ -404932,6 +405287,9 @@ components:
           type: string
         durationMs:
           type: number
+        eventId:
+          description: Client-generated event ID. Use it to fetch a detection's trace.
+          type: string
         eventName:
           type: string
         inventoryExtensionId:
@@ -462760,10 +463118,9 @@ components:
       x-auditable: true
     r2_r2_bucket_job:
       description: |
-        Descriptor of a bucket background job, discriminated by `jobType`. Returned when the
-        delete-objects endpoint is invoked with a `prefix` query parameter, and by the Get Bucket
-        Job and List Bucket Jobs endpoints. A small operation can already be `COMPLETED` when it
-        is returned.
+        Descriptor of a bucket background job, discriminated by `jobType`. Returned by the
+        Create Bucket Job, Get Bucket Job and List Bucket Jobs endpoints. A small operation can
+        already be `COMPLETED` when it is returned.
       discriminator:
         mapping:
           prefixDelete: '#/components/schemas/r2_prefix_delete_job'
@@ -462794,6 +463151,47 @@ components:
           type: string
       required:
         - jobs
+    r2_r2_create_prefix_delete_job_request:
+      description: Request body that creates a prefix-delete job.
+      type: object
+      properties:
+        jobType:
+          type: string
+          enum:
+            - prefixDelete
+        prefix:
+          description: |
+            Prefix matched against object keys. A non-empty value must end in `/`.
+            An empty string empties the entire bucket.
+          type: string
+          example: path/to/
+      additionalProperties: false
+      required:
+        - jobType
+        - prefix
+      title: Prefix Delete Job
+    r2_r2_create_storage_class_migration_job_request:
+      description: Request body that creates a storage-class migration job.
+      type: object
+      properties:
+        destinationStorageClass:
+          type: string
+          enum:
+            - Standard
+            - InfrequentAccess
+        jobType:
+          type: string
+          enum:
+            - storageClassMigration
+        sourceStorageClass:
+          type: string
+          enum:
+            - Standard
+            - InfrequentAccess
+      additionalProperties: false
+      required:
+        - jobType
+      title: Storage Class Migration Job
     r2_r2_delete_object_result:
       description: Result of a successful object deletion.
       type: object
@@ -482119,6 +482517,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/teams-devices_target_dex_test'
+          deprecated: true
+          x-fern-deprecated: true
         tunnel_protocol:
           $ref: '#/components/schemas/teams-devices_tunnel_protocol'
         uninstall_protection:
@@ -493258,6 +493658,13 @@ components:
       properties:
         jurisdiction:
           $ref: '#/components/schemas/workers-kv_jurisdiction'
+        mode:
+          description: The mode of the Workers KV namespace. Specify `instant` when creating a namespace to create a KV Instant namespace. Omit this field when creating a namespace to create a classic namespace. Currently, `instant` is the only supported explicit value.
+          type: string
+          example: instant
+          enum:
+            - instant
+          x-fern-property-name: namespaceMode
         title:
           $ref: '#/components/schemas/workers-kv_namespace_title'
       required:
@@ -493367,6 +493774,8 @@ components:
           $ref: '#/components/schemas/workers-kv_namespace_identifier'
         jurisdiction:
           $ref: '#/components/schemas/workers-kv_jurisdiction'
+        mode:
+          $ref: '#/components/schemas/workers-kv_namespace_mode'
         supports_url_encoding:
           description: True if keys written on the URL will be URL-decoded before storing. For example, if set to "true", a key written on the URL as "%3F" will be stored as "?".
           type: boolean
@@ -493385,6 +493794,12 @@ components:
       maxLength: 32
       readOnly: true
       x-auditable: true
+    workers-kv_namespace_mode:
+      description: The mode of the Workers KV namespace. Specify `instant` when creating a namespace to create a KV Instant namespace. Omit this field when creating a namespace to create a classic namespace. Currently, `instant` is the only supported explicit value.
+      type: string
+      example: instant
+      enum:
+        - instant
     workers-kv_namespace_title:
       description: Human-readable string name for a Workers KV namespace.
       type: string
@@ -501596,6 +502011,8 @@ components:
           example: O=Example Inc.,L=California,ST=San Francisco,C=US
           readOnly: true
           x-auditable: true
+        region:
+          $ref: '#/components/schemas/zero-trust-gateway_region'
         type:
           $ref: '#/components/schemas/zero-trust-gateway_type'
         updated_at:
@@ -502744,6 +503161,12 @@ components:
       format: date-time
       example: 2014-01-01T05:20:00.12345Z
       readOnly: true
+    zero-trust-gateway_region:
+      description: Indicate the read-only region the certificate authority's key material is pinned to. Omitted for certificates that were created without a region.
+      type: string
+      example: wnam
+      readOnly: true
+      x-auditable: true
     zero-trust-gateway_response_collection:
       type: object
       allOf:
@@ -512211,6 +512634,13 @@ x-forge-commands:
         description: Static routes that direct IP prefix traffic through specific GRE/IPsec tunnels
       sites:
         description: Magic WAN branch sites — base CRUD, LAN/WAN interface configuration, ACLs, connectors, app configuration, and NetFlow config
+  mcp:
+    description: Manage MCP portals and upstream MCP servers for Cloudflare Access AI controls
+    groups:
+      portals:
+        description: Manage MCP portals, attached servers, and Code Mode settings
+      servers:
+        description: Manage upstream MCP servers, credentials, capabilities, and sync state
   network-interconnects:
     description: Physical and virtual private interconnects between your infrastructure and Cloudflare's network
     groups:
@@ -512270,7 +512700,7 @@ x-forge-commands:
       buckets:
         description: Create and configure R2 buckets including CORS, lifecycle, custom domains, event notifications, and object locks
       buckets.jobs:
-        description: Inspect background jobs for an R2 bucket
+        description: Create and inspect background jobs for an R2 bucket
       buckets.local-uploads:
         description: R2 bucket local upload configuration
       super-slurper:
@@ -512716,9 +513146,3 @@ x-forge-commands:
         description: Rum operations
       speed-brain:
         description: Speed Brain operations
-x-forge-group-info:
-  mcp:
-    portals:
-      description: Manage MCP portals, attached servers, and Code Mode settings
-    servers:
-      description: Manage upstream MCP servers, credentials, capabilities, and sync state
