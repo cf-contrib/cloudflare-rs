@@ -11,6 +11,11 @@ output_dir = "target/openapi-to-rust"
 module_name = "v4"
 overlays = ["openapi/cloudflare/v4/overlay.yaml"]
 
+# A `*_builder()` beside every operation with more than three optional
+# parameters, as most of Cloudflare's list operations have.
+[generator.builders]
+enabled = true
+
 [features]
 enable_async_client = true
 

@@ -1,24 +1,13 @@
 # Fixes applied to openapi.yaml before generation, so the upstream document is
-# vendored as is and an update is only a copy.
-#
-# Each action removes an `allOf` member that intersects one union with another.
-# The generator can't flatten that into one Rust type, and every one of them
-# either repeats a constraint the other member already states, or only says
-# which fields must be present, which a Rust type can't express anyway:
-# https://github.com/gpu-cli/openapi-to-rust/issues/88
+# vendored as is and an update is only a copy. Each says what it fixes.
 overlay: 1.1.0
 info:
   title: cloudflare-rs fixes
   version: 1.0.0
 actions:
-  # "At least one of to, cc or bcc" and "at least one of text or html".
-  - target: $.components.schemas['email-sending_EmailBuilder'].allOf
-    remove: true
-  # "At least one of breakout or priority". The account/managed app oneOf stays.
-  - target: $.components.schemas['magic_app_config_add_single_request'].allOf[1]
-    remove: true
   # A copy of workers-observability_filter_node, inlined beside the $ref to it,
-  # in the request body of every Workers Observability query.
+  # in the request body of every Workers Observability query. The generator
+  # can't intersect a union with itself as one Rust type.
   - target: $.paths..filters.items.allOf[1]
     remove: true
   # A token policy's `id` is read-only: the API assigns it. The document still
