@@ -13,12 +13,18 @@
 //! Cargo.toml are generated from the document too:
 //! `CLOUDFLARE_SYNC_FEATURES=1 cargo check` rewrites them when it changes.
 //!
+//! Operations are named after Cloudflare's own SDKs too: `x-fern-sdk-group-name`
+//! and `x-fern-sdk-method-name`, so `GET /zones/{zone_id}/dns_records` is
+//! `dns_records_list` rather than its operationId,
+//! `dns-records-for-a-zone-list-dns-records`. The few whose names the document
+//! repeats keep their operationId.
+//!
 //! `CLOUDFLARE_CHECK=1` also generates the whole API, client and all, and
 //! throws it away: it takes seconds where compiling it takes minutes, so CI
 //! knows every feature generates without building them all.
 
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, HashMap, HashSet},
     env,
     error::Error,
     fs,
@@ -62,7 +68,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     config.output_dir = out_dir.clone();
 
     let spec = parse_spec(&fs::read_to_string(&config.spec_path)?, SPEC)?;
-    let spec = preprocess_spec(spec, &config.schema_extensions, &config.overlays)?;
+    let mut spec = preprocess_spec(spec, &config.schema_extensions, &config.overlays)?;
+    name_operations(&mut spec);
     if let Some(warning) = validate_oas_document(&spec)? {
         println!("cargo:warning={warning}");
     }
@@ -144,6 +151,112 @@ fn generate(
     let generator = CodeGenerator::new(config).with_source_provenance(SPEC);
     let result = generator.generate_all(&mut analysis)?;
     Ok((generator, result))
+}
+
+/// Renames every operation to its name in Cloudflare's own SDKs, its
+/// `x-fern-sdk-group-name` and `x-fern-sdk-method-name` in snake case, unless
+/// another operation would have the same one. Of two that would, one that
+/// Cloudflare's SDKs leave out (`x-fern-ignore`) keeps its operationId and the
+/// other takes the name: a deprecated operation beside its replacement. Any
+/// others keep their operationIds: a v1 beside a v2.
+fn name_operations(spec: &mut Value) {
+    let Some(paths) = spec["paths"].as_object_mut() else {
+        return;
+    };
+    let mut operations: Vec<&mut Value> = paths
+        .values_mut()
+        .filter_map(Value::as_object_mut)
+        .flat_map(|item| item.values_mut())
+        .filter(|operation| operation["operationId"].is_string())
+        .collect();
+
+    let ids: Vec<String> = operations
+        .iter()
+        .map(|operation| snake_case(operation["operationId"].as_str().unwrap_or_default()))
+        .collect();
+    let fern_names: Vec<Option<String>> = operations
+        .iter()
+        .map(|operation| {
+            let group = operation["x-fern-sdk-group-name"].as_str()?;
+            let method = operation["x-fern-sdk-method-name"].as_str()?;
+            Some(snake_case(&format!("{group}.{method}")))
+        })
+        .collect();
+
+    // Every operation whose Fern name no other has takes it, and of those
+    // that share one, the only one Cloudflare's SDKs don't leave out.
+    let ignored: Vec<bool> = operations
+        .iter()
+        .map(|operation| operation["x-fern-ignore"].as_bool() == Some(true))
+        .collect();
+    let mut counts = HashMap::<&str, usize>::new();
+    let mut kept_counts = HashMap::<&str, usize>::new();
+    for (name, ignored) in fern_names.iter().zip(&ignored) {
+        if let Some(name) = name {
+            *counts.entry(name).or_default() += 1;
+            if !ignored {
+                *kept_counts.entry(name).or_default() += 1;
+            }
+        }
+    }
+    let mut renamed: Vec<bool> = fern_names
+        .iter()
+        .zip(&ignored)
+        .map(|(name, ignored)| {
+            name.as_deref().is_some_and(|name| {
+                counts[name] == 1 || (!ignored && kept_counts.get(name) == Some(&1))
+            })
+        })
+        .collect();
+
+    // Until no name is taken twice, one that does goes back to its id. The
+    // ids are unique, so the operations that keep theirs never clash.
+    loop {
+        let kept: HashSet<&str> = ids
+            .iter()
+            .zip(&renamed)
+            .filter(|(_, renamed)| !**renamed)
+            .map(|(id, _)| id.as_str())
+            .collect();
+        let mut changed = false;
+        for (index, name) in fern_names.iter().enumerate() {
+            if renamed[index] && name.as_deref().is_some_and(|name| kept.contains(name)) {
+                renamed[index] = false;
+                changed = true;
+            }
+        }
+        if !changed {
+            break;
+        }
+    }
+
+    for ((operation, name), renamed) in operations.iter_mut().zip(fern_names).zip(renamed) {
+        if let (Some(name), true) = (name, renamed) {
+            operation["operationId"] = Value::String(name);
+        }
+    }
+}
+
+/// `accounts.subscriptions.createBulk` and `workers-for-platforms` as
+/// `accounts_subscriptions_create_bulk` and `workers_for_platforms`.
+fn snake_case(name: &str) -> String {
+    let mut snake = String::new();
+    let mut previous_lower = false;
+    for c in name.chars() {
+        if c.is_ascii_alphanumeric() {
+            if c.is_ascii_uppercase() && previous_lower {
+                snake.push('_');
+            }
+            previous_lower = c.is_ascii_lowercase() || c.is_ascii_digit();
+            snake.push(c.to_ascii_lowercase());
+        } else {
+            if !snake.is_empty() && !snake.ends_with('_') {
+                snake.push('_');
+            }
+            previous_lower = false;
+        }
+    }
+    snake.trim_end_matches('_').to_string()
 }
 
 /// Every product, and its operations as `METHOD /path`: unlike operationIds,

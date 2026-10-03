@@ -70,17 +70,25 @@ use cloudflare::v4::HttpClient;
 // The API token is sent as a bearer token, to https://api.cloudflare.com/client/v4.
 let client = HttpClient::new().with_api_key(std::env::var("CLOUDFLARE_API_TOKEN")?);
 
-let zone = client.zones_0_get("023e105f4ecef8ad9ca31a8372d0c353").await?;
+let zone = client.zones_get("023e105f4ecef8ad9ca31a8372d0c353").await?;
 ```
 
-Method names are the document's `operationId`s, in snake case. They take the
-operation's parameters in the document's order, then its body, with optional
-ones as `Option`s. An operation with more than three optional parameters, as
+Methods are named as in Cloudflare's own SDKs, by the product, resource and
+action each operation's `x-fern-sdk-group-name` and `x-fern-sdk-method-name`
+give it: `GET /zones/{zone_id}/dns_records` is `dns_records_list`, and
+`GET /accounts/{account_id}/r2/buckets/{bucket_name}/objects/{object_key}` is
+`r2_objects_get`. The few the document names twice, such as a deprecated
+operation beside its replacement, keep their `operationId`. Their error types
+are named after them too, as are responses defined inline: `ZonesListResponse`
+and `ZonesListApiError`.
+
+Methods take the operation's parameters in the document's order, then its body,
+with optional ones as `Option`s. An operation with more than three optional parameters, as
 most list operations have, also has a builder, which takes the required ones
 and has a setter for each of the rest:
 
 ```rust
-let zones = client.zones_get_builder().name("example.com").per_page(50.0).send().await?;
+let zones = client.zones_list_builder().name("example.com").per_page(50.0).send().await?;
 ```
 
 An error the API answers with is an `ApiOpError::Api`, which holds the status,
