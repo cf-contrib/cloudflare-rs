@@ -161,12 +161,11 @@ and take seconds.
 
 ## Known gaps
 
-- The generator can't encode a multipart field that is a JSON object, so the 13
+- The generator can't encode a multipart field that is a list of files, so the 7
   operations that take one return `HttpError::Config` without sending anything:
-  uploading a Worker's script, content, version or settings (including under
-  Workers for Platforms), writing a KV value with metadata, uploading an image
-  or creating a direct upload URL, and converting to Markdown with Workers AI
-  ([gpu-cli/openapi-to-rust#87](https://github.com/gpu-cli/openapi-to-rust/issues/87)).
+  uploading a Worker's script, content or version (including under Workers for
+  Platforms), and converting to Markdown with Workers AI
+  ([gpu-cli/openapi-to-rust#96](https://github.com/gpu-cli/openapi-to-rust/pull/96)).
 - A few constraints the document states but Rust types can't, such as "at least
   one of `to`, `cc` or `bcc`", are the API's to enforce, not the types'.
 
