@@ -1058,7 +1058,7 @@ checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 [[package]]
 name = "openapi-to-rust"
 version = "0.19.0"
-source = "git+https://github.com/gpu-cli/openapi-to-rust?rev=2e1f1db4ea41642845dc8c122d1dcf34d2159351#2e1f1db4ea41642845dc8c122d1dcf34d2159351"
+source = "git+https://github.com/gpu-cli/openapi-to-rust?rev=977d0873462c98f13043eff2a2ac4eb11c2e5ceb#977d0873462c98f13043eff2a2ac4eb11c2e5ceb"
 dependencies = [
  "heck",
  "jsonschema",
