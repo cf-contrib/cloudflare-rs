@@ -120,7 +120,6 @@ full = [
   "dns-firewall",
   "domain-info",
   "durable-objects",
-  "email",
   "email-auth",
   "email-routing",
   "email-security",
@@ -167,7 +166,6 @@ full = [
   "organization",
   "organizations",
   "origin-ca-certificates",
-  "origin-post-quantum-encryption",
   "origin-tls-client-auth",
   "other",
   "page-rules",
@@ -179,10 +177,7 @@ full = [
   "queries",
   "queues",
   "r2",
-  "r2-data-catalog",
   "radar",
-  "rate-limit-analytics",
-  "rate-limits",
   "ready",
   "realtime",
   "recent-submissions",
@@ -244,20 +239,20 @@ full = [
 ]
 abuse-reports = ["types"] # 10 operations
 account-tags = ["types"] # 3 operations
-accounts = ["types"] # 63 operations
+accounts = ["types"] # 61 operations
 acm = ["types"] # 6 operations
-addressing = ["types"] # 41 operations
+addressing = ["types"] # 39 operations
 agent-memory = ["types"] # 14 operations
 ai = ["types"] # 15 operations
 ai-audit = ["types"] # 2 operations
-ai-gateway = ["types"] # 67 operations
-ai-search = ["types"] # 49 operations
+ai-gateway = ["types"] # 66 operations
+ai-search = ["types"] # 36 operations
 ai-security = ["types"] # 4 operations
 alerting = ["types"] # 25 operations
 alerts = ["types"] # 5 operations
-analytics = ["types"] # 14 operations
+analytics = ["types"] # 12 operations
 analytics-engine = ["types"] # 2 operations
-api-security = ["types"] # 68 operations
+api-security = ["types"] # 54 operations
 argo = ["types"] # 6 operations
 artifacts = ["types"] # 19 operations
 audit-logs = ["types"] # 1 operation
@@ -271,20 +266,20 @@ brands = ["types"] # 6 operations
 browser-extension = ["types"] # 7 operations
 browser-run = ["types"] # 27 operations
 builds = ["types"] # 32 operations
-cache = ["types"] # 32 operations
+cache = ["types"] # 24 operations
 certificate-authorities = ["types"] # 2 operations
 clear = ["types"] # 1 operation
 client-certificates = ["types"] # 5 operations
 client-side-security = ["types"] # 13 operations
 cloud-connector = ["types"] # 2 operations
-cloudforce-one = ["types"] # 270 operations
+cloudforce-one = ["types"] # 255 operations
 connector-interrupts = ["types"] # 2 operations
 connector-telemetry-events = ["types"] # 2 operations
 connector-telemetry-events-latest = ["types"] # 1 operation
 connector-telemetry-snapshots = ["types"] # 2 operations
 connector-telemetry-snapshots-latest = ["types"] # 1 operation
 connectors = ["types"] # 6 operations
-containers = ["types"] # 15 operations
+containers = ["types"] # 14 operations
 content-scan = ["types"] # 8 operations
 cps = ["types"] # 2 operations
 csam-scanner = ["types"] # 2 operations
@@ -298,17 +293,16 @@ d1 = ["types"] # 12 operations
 dcv-delegation = ["types"] # 1 operation
 diagnostics = ["types"] # 6 operations
 dls = ["types"] # 7 operations
-dns = ["types"] # 62 operations
-dns-firewall = ["types"] # 9 operations
+dns = ["types"] # 59 operations
+dns-firewall = ["types"] # 7 operations
 domain-info = ["types"] # 1 operation
 durable-objects = ["types"] # 3 operations
-email = ["types"] # 16 operations
 email-auth = ["types"] # 3 operations
-email-routing = ["types"] # 24 operations
-email-security = ["types"] # 75 operations
+email-routing = ["types"] # 21 operations
+email-security = ["types"] # 73 operations
 email-sending = ["types"] # 21 operations
 field-extractors = ["types"] # 3 operations
-firewall = ["types"] # 49 operations
+firewall = ["types"] # 19 operations
 flagship = ["types"] # 14 operations
 fraud = ["types"] # 2 operations
 google-tag-gateway = ["types"] # 2 operations
@@ -317,21 +311,21 @@ healthchecks = ["types"] # 9 operations
 hostnames = ["types"] # 4 operations
 hyperdrive = ["types"] # 8 operations
 iam = ["types"] # 31 operations
-images = ["types"] # 37 operations
-intel = ["types"] # 38 operations
+images = ["types"] # 34 operations
+intel = ["types"] # 33 operations
 internal = ["types"] # 1 operation
 ips = ["types"] # 1 operation
 k2 = ["types"] # 6 operations
 keyless-certificates = ["types"] # 5 operations
 keys = ["types"] # 1 operation
-kv = ["types"] # 14 operations
+kv = ["types"] # 13 operations
 leaked-credential-checks = ["types"] # 7 operations
 live = ["types"] # 1 operation
 load-balancers = ["types"] # 42 operations
 logo-matches = ["types"] # 2 operations
 logos = ["types"] # 4 operations
 logpush = ["types"] # 34 operations
-logs = ["types"] # 26 operations
+logs = ["types"] # 24 operations
 magic-cloud-networking = ["types"] # 33 operations
 magic-network-monitoring = ["types"] # 15 operations
 magic-transit = ["types"] # 139 operations
@@ -343,33 +337,29 @@ media = ["types"] # 2 operations
 mesh = ["types"] # 11 operations
 monetization = ["types"] # 10 operations
 mtls-certificates = ["types"] # 5 operations
-network = ["types"] # 27 operations
+network = ["types"] # 24 operations
 network-interconnects = ["types"] # 16 operations
 observability = ["types"] # 40 operations
 organization = ["types"] # 15 operations
 organizations = ["types"] # 3 operations
 origin-ca-certificates = ["types"] # 4 operations
-origin-post-quantum-encryption = ["types"] # 2 operations
 origin-tls-client-auth = ["types"] # 13 operations
 other = ["types"] # 6 operations
-page-rules = ["types"] # 7 operations
+page-rules = ["types"] # 6 operations
 pages = ["types"] # 26 operations
 pay-per-crawl = ["types"] # 17 operations
 pay-per-use = ["types"] # 16 operations
-pipelines = ["types"] # 19 operations
+pipelines = ["types"] # 14 operations
 precursor = ["types"] # 2 operations
 queries = ["types"] # 7 operations
-queues = ["types"] # 28 operations
+queues = ["types"] # 26 operations
 r2 = ["types"] # 52 operations
-r2-data-catalog = ["types"] # 16 operations
-radar = ["types"] # 279 operations
-rate-limit-analytics = ["types"] # 1 operation
-rate-limits = ["types"] # 5 operations
+radar = ["types"] # 152 operations
 ready = ["types"] # 1 operation
 realtime = ["types"] # 79 operations
 recent-submissions = ["types"] # 1 operation
 refute = ["types"] # 1 operation
-registrar = ["types"] # 16 operations
+registrar = ["types"] # 13 operations
 registrar-sandbox = ["types"] # 10 operations
 reporting = ["types"] # 6 operations
 request-tracers = ["types"] # 1 operation
@@ -391,7 +381,7 @@ snippets = ["types"] # 8 operations
 spectrum = ["types"] # 10 operations
 speed = ["types"] # 10 operations
 sql = ["types"] # 2 operations
-ssl = ["types"] # 16 operations
+ssl = ["types"] # 15 operations
 stream = ["types"] # 50 operations
 submission-info = ["types"] # 1 operation
 submit = ["types"] # 1 operation
@@ -405,10 +395,10 @@ tunnels = ["types"] # 12 operations
 turnstile = ["types"] # 6 operations
 url-info = ["types"] # 1 operation
 url-normalization = ["types"] # 3 operations
-url-scanner = ["types"] # 14 operations
-user = ["types"] # 56 operations
+url-scanner = ["types"] # 8 operations
+user = ["types"] # 50 operations
 values = ["types"] # 1 operation
-vectorize = ["types"] # 24 operations
+vectorize = ["types"] # 14 operations
 verify = ["types"] # 1 operation
 waiting-rooms = ["types"] # 24 operations
 web-assets = ["types"] # 28 operations
@@ -419,10 +409,10 @@ workers-for-platforms = ["types"] # 27 operations
 workers-vpc = ["types"] # 5 operations
 workflows = ["types"] # 27 operations
 zaraz = ["types"] # 10 operations
-zero-trust = ["types"] # 486 operations
+zero-trust = ["types"] # 467 operations
 zone = ["types"] # 1 operation
 zone-tags = ["types"] # 3 operations
-zones = ["types"] # 62 operations
+zones = ["types"] # 58 operations
 # END products
 
 [lints.cargo]

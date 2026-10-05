@@ -19,6 +19,10 @@
 //! `dns-records-for-a-zone-list-dns-records`. The few whose names the document
 //! repeats keep their operationId.
 //!
+//! Operations the document marks deprecated are left out: most have a
+//! replacement, and some only return 410 Gone. One the overlay sets
+//! `deprecated: false` is kept.
+//!
 //! `CLOUDFLARE_CHECK=1` also generates the whole API, client and all, and
 //! throws it away: it takes seconds where compiling it takes minutes, so CI
 //! knows every feature generates without building them all.
@@ -69,6 +73,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let spec = parse_spec(&fs::read_to_string(&config.spec_path)?, SPEC)?;
     let mut spec = preprocess_spec(spec, &config.schema_extensions, &config.overlays)?;
+    skip_deprecated(&mut spec);
     name_operations(&mut spec);
     if let Some(warning) = validate_oas_document(&spec)? {
         println!("cargo:warning={warning}");
@@ -153,12 +158,32 @@ fn generate(
     Ok((generator, result))
 }
 
+/// Drops every operation the document marks `deprecated: true`, and the paths
+/// left with none. To keep one, the overlay sets it `deprecated: false`.
+fn skip_deprecated(spec: &mut Value) {
+    const METHODS: [&str; 8] = [
+        "get", "put", "post", "delete", "options", "head", "patch", "trace",
+    ];
+    let Some(paths) = spec["paths"].as_object_mut() else {
+        return;
+    };
+    paths.retain(|_, item| {
+        let Some(item) = item.as_object_mut() else {
+            return true;
+        };
+        item.retain(|key, operation| {
+            !(METHODS.contains(&key.as_str()) && operation["deprecated"].as_bool() == Some(true))
+        });
+        METHODS.iter().any(|method| item.contains_key(*method))
+    });
+}
+
 /// Renames every operation to its name in Cloudflare's own SDKs, its
 /// `x-fern-sdk-group-name` and `x-fern-sdk-method-name` in snake case, unless
 /// another operation would have the same one. Of two that would, one that
 /// Cloudflare's SDKs leave out (`x-fern-ignore`) keeps its operationId and the
-/// other takes the name: a deprecated operation beside its replacement. Any
-/// others keep their operationIds: a v1 beside a v2.
+/// other takes the name. Any others keep their operationIds: a v1 beside a v2,
+/// or an account's and a zone's version of one operation.
 fn name_operations(spec: &mut Value) {
     let Some(paths) = spec["paths"].as_object_mut() else {
         return;

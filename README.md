@@ -77,10 +77,13 @@ Methods are named as in Cloudflare's own SDKs, by the product, resource and
 action each operation's `x-fern-sdk-group-name` and `x-fern-sdk-method-name`
 give it: `GET /zones/{zone_id}/dns_records` is `dns_records_list`, and
 `GET /accounts/{account_id}/r2/buckets/{bucket_name}/objects/{object_key}` is
-`r2_objects_get`. The few the document names twice, such as a deprecated
-operation beside its replacement, keep their `operationId`. Their error types
+`r2_objects_get`. The few the document names twice, such as an account's and a
+zone's version of one operation, keep their `operationId`. Their error types
 are named after them too, as are responses defined inline: `ZonesListResponse`
 and `ZonesListApiError`.
+
+Operations the document marks deprecated are left out: most have a
+replacement, and some only return 410 Gone.
 
 Methods take the operation's parameters in the document's order, then its body,
 with optional ones as `Option`s. An operation with more than three optional parameters, as
