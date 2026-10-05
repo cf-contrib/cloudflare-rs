@@ -115,9 +115,7 @@ generator needs, which says what each one is.
 `build.rs` runs [openapi-to-rust](https://github.com/gpu-cli/openapi-to-rust)
 over the two into `OUT_DIR` on every build that changes them, as
 [`openapi-to-rust.toml`](openapi-to-rust.toml) says, for the products that are
-on. None of it is checked in or edited by hand. Until a release of
-openapi-to-rust has the fixes this needs, it's built from a pinned commit of its
-`main`.
+on. None of it is checked in or edited by hand.
 
 The product features in Cargo.toml are generated from the document too, and the
 build fails if they aren't the document's. To rewrite them:
@@ -161,11 +159,9 @@ and take seconds.
 
 ## Known gaps
 
-- The generator can't encode a multipart field that is a list of files, so the 7
-  operations that take one return `HttpError::Config` without sending anything:
-  uploading a Worker's script, content or version (including under Workers for
-  Platforms), and converting to Markdown with Workers AI
-  ([gpu-cli/openapi-to-rust#96](https://github.com/gpu-cli/openapi-to-rust/pull/96)).
+- The generator can't encode a multipart request whose schema has typed
+  additional properties, so uploading Workers assets returns `HttpError::Config`
+  without sending anything.
 - A few constraints the document states but Rust types can't, such as "at least
   one of `to`, `cc` or `bcc`", are the API's to enforce, not the types'.
 
