@@ -423,7 +423,7 @@ unused_dependencies = "allow"
 [build-dependencies]
 # Generates the API from the OpenAPI document, in build.rs. Without the `cli`
 # default it is only the library: no clap, no reqwest.
-openapi-to-rust = { version = "0.20.0", default-features = false }
+openapi-to-rust = { version = "0.22.0", default-features = false }
 # Reads each operation's product from the document.
 serde_json = "1"
 
