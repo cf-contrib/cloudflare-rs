@@ -61,7 +61,6 @@ client = [
 # Every product.
 full = [
   "abuse-reports",
-  "account-tags",
   "accounts",
   "acm",
   "addressing",
@@ -90,9 +89,7 @@ full = [
   "browser-run",
   "builds",
   "cache",
-  "certificate-authorities",
   "clear",
-  "client-certificates",
   "client-side-security",
   "cloud-connector",
   "cloudforce-one",
@@ -106,14 +103,11 @@ full = [
   "content-scan",
   "cps",
   "csam-scanner",
-  "ct-alerting",
-  "custom-certificates",
   "custom-csrs",
   "custom-hostnames",
   "custom-nameservers",
   "custom-pages",
   "d1",
-  "dcv-delegation",
   "diagnostics",
   "dls",
   "dns",
@@ -131,7 +125,6 @@ full = [
   "google-tag-gateway",
   "health",
   "healthchecks",
-  "hostnames",
   "hyperdrive",
   "iam",
   "images",
@@ -139,8 +132,6 @@ full = [
   "internal",
   "ips",
   "k2",
-  "keyless-certificates",
-  "keys",
   "kv",
   "leaked-credential-checks",
   "live",
@@ -159,14 +150,11 @@ full = [
   "media",
   "mesh",
   "monetization",
-  "mtls-certificates",
   "network",
   "network-interconnects",
   "observability",
   "organization",
   "organizations",
-  "origin-ca-certificates",
-  "origin-tls-client-auth",
   "other",
   "page-rules",
   "pages",
@@ -188,7 +176,6 @@ full = [
   "reporting",
   "request-tracers",
   "resource-sharing",
-  "resource-tagging",
   "rules",
   "rulesets",
   "rum",
@@ -221,7 +208,6 @@ full = [
   "url-normalization",
   "url-scanner",
   "user",
-  "values",
   "vectorize",
   "verify",
   "waiting-rooms",
@@ -235,12 +221,10 @@ full = [
   "zaraz",
   "zero-trust",
   "zone",
-  "zone-tags",
   "zones",
 ]
 abuse-reports = ["types"] # 10 operations
-account-tags = ["types"] # 3 operations
-accounts = ["types"] # 61 operations
+accounts = ["types"] # 62 operations
 acm = ["types"] # 6 operations
 addressing = ["types"] # 44 operations
 agent-memory = ["types"] # 14 operations
@@ -268,12 +252,10 @@ browser-extension = ["types"] # 8 operations
 browser-run = ["types"] # 27 operations
 builds = ["types"] # 32 operations
 cache = ["types"] # 24 operations
-certificate-authorities = ["types"] # 2 operations
 clear = ["types"] # 1 operation
-client-certificates = ["types"] # 5 operations
 client-side-security = ["types"] # 13 operations
 cloud-connector = ["types"] # 2 operations
-cloudforce-one = ["types"] # 257 operations
+cloudforce-one = ["types"] # 256 operations
 connector-interrupts = ["types"] # 2 operations
 connector-telemetry-events = ["types"] # 2 operations
 connector-telemetry-events-latest = ["types"] # 1 operation
@@ -284,14 +266,11 @@ containers = ["types"] # 14 operations
 content-scan = ["types"] # 8 operations
 cps = ["types"] # 2 operations
 csam-scanner = ["types"] # 2 operations
-ct-alerting = ["types"] # 2 operations
-custom-certificates = ["types"] # 6 operations
 custom-csrs = ["types"] # 8 operations
 custom-hostnames = ["types"] # 11 operations
 custom-nameservers = ["types"] # 3 operations
 custom-pages = ["types"] # 18 operations
 d1 = ["types"] # 13 operations
-dcv-delegation = ["types"] # 1 operation
 diagnostics = ["types"] # 6 operations
 dls = ["types"] # 7 operations
 dns = ["types"] # 59 operations
@@ -309,16 +288,13 @@ fraud = ["types"] # 2 operations
 google-tag-gateway = ["types"] # 2 operations
 health = ["types"] # 1 operation
 healthchecks = ["types"] # 9 operations
-hostnames = ["types"] # 4 operations
 hyperdrive = ["types"] # 8 operations
 iam = ["types"] # 31 operations
 images = ["types"] # 34 operations
 intel = ["types"] # 33 operations
 internal = ["types"] # 1 operation
 ips = ["types"] # 1 operation
-k2 = ["types"] # 14 operations
-keyless-certificates = ["types"] # 5 operations
-keys = ["types"] # 1 operation
+k2 = ["types"] # 15 operations
 kv = ["types"] # 13 operations
 leaked-credential-checks = ["types"] # 7 operations
 live = ["types"] # 1 operation
@@ -337,14 +313,11 @@ mcp = ["types"] # 15 operations
 media = ["types"] # 2 operations
 mesh = ["types"] # 11 operations
 monetization = ["types"] # 10 operations
-mtls-certificates = ["types"] # 5 operations
-network = ["types"] # 24 operations
+network = ["types"] # 25 operations
 network-interconnects = ["types"] # 16 operations
 observability = ["types"] # 42 operations
 organization = ["types"] # 15 operations
 organizations = ["types"] # 3 operations
-origin-ca-certificates = ["types"] # 4 operations
-origin-tls-client-auth = ["types"] # 13 operations
 other = ["types"] # 6 operations
 page-rules = ["types"] # 6 operations
 pages = ["types"] # 26 operations
@@ -366,7 +339,6 @@ registrar-sandbox = ["types"] # 10 operations
 reporting = ["types"] # 6 operations
 request-tracers = ["types"] # 1 operation
 resource-sharing = ["types"] # 20 operations
-resource-tagging = ["types"] # 1 operation
 rules = ["types"] # 11 operations
 rulesets = ["types"] # 32 operations
 rum = ["types"] # 13 operations
@@ -383,11 +355,11 @@ snippets = ["types"] # 8 operations
 spectrum = ["types"] # 10 operations
 speed = ["types"] # 10 operations
 sql = ["types"] # 2 operations
-ssl = ["types"] # 15 operations
+ssl = ["types"] # 58 operations
 stream = ["types"] # 50 operations
 submission-info = ["types"] # 1 operation
 submit = ["types"] # 1 operation
-tags = ["types"] # 1 operation
+tags = ["types"] # 10 operations
 tenant = ["types"] # 5 operations
 tenant-custom-nameservers = ["types"] # 3 operations
 total-queries = ["types"] # 1 operation
@@ -399,7 +371,6 @@ url-info = ["types"] # 1 operation
 url-normalization = ["types"] # 3 operations
 url-scanner = ["types"] # 8 operations
 user = ["types"] # 50 operations
-values = ["types"] # 1 operation
 vectorize = ["types"] # 14 operations
 verify = ["types"] # 1 operation
 waiting-rooms = ["types"] # 24 operations
@@ -411,10 +382,9 @@ workers-for-platforms = ["types"] # 27 operations
 workers-vpc = ["types"] # 5 operations
 workflows = ["types"] # 31 operations
 zaraz = ["types"] # 10 operations
-zero-trust = ["types"] # 468 operations
+zero-trust = ["types"] # 556 operations
 zone = ["types"] # 1 operation
-zone-tags = ["types"] # 3 operations
-zones = ["types"] # 58 operations
+zones = ["types"] # 62 operations
 # END products
 
 [lints.cargo]
