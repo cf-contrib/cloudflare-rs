@@ -134,7 +134,6 @@ full = [
   "load-balancers",
   "logpush",
   "logs",
-  "magic-cloud-networking",
   "magic-network-monitoring",
   "magic-transit",
   "managed-defense",
@@ -201,7 +200,6 @@ full = [
   "workflows",
   "zaraz",
   "zero-trust",
-  "zone",
   "zones",
 ]
 abuse-reports = ["types"] # 10 operations
@@ -223,7 +221,7 @@ artifacts = ["types"] # 19 operations
 audit-logs = ["types"] # 1 operation
 autorag = ["types"] # 7 operations
 basin-catalog = ["types"] # 16 operations
-billing = ["types"] # 14 operations
+billing = ["types"] # 21 operations
 bot-management = ["types"] # 4 operations
 botnet-feed = ["types"] # 4 operations
 brand-protection = ["types"] # 51 operations
@@ -233,7 +231,7 @@ builds = ["types"] # 32 operations
 cache = ["types"] # 24 operations
 client-side-security = ["types"] # 13 operations
 cloud-connector = ["types"] # 2 operations
-cloudforce-one = ["types"] # 265 operations
+cloudforce-one = ["types"] # 267 operations
 connector-interrupts = ["types"] # 2 operations
 connector-telemetry-events = ["types"] # 2 operations
 connector-telemetry-events-latest = ["types"] # 1 operation
@@ -251,16 +249,16 @@ custom-pages = ["types"] # 18 operations
 d1 = ["types"] # 13 operations
 diagnostics = ["types"] # 6 operations
 dls = ["types"] # 7 operations
-dns = ["types"] # 64 operations
+dns = ["types"] # 65 operations
 dns-firewall = ["types"] # 7 operations
 durable-objects = ["types"] # 3 operations
 email-auth = ["types"] # 3 operations
-email-domains = ["types"] # 5 operations
+email-domains = ["types"] # 6 operations
 email-routing = ["types"] # 21 operations
 email-security = ["types"] # 73 operations
 email-sending = ["types"] # 21 operations
 field-extractors = ["types"] # 3 operations
-firewall = ["types"] # 19 operations
+firewall = ["types"] # 25 operations
 flagship = ["types"] # 15 operations
 fraud = ["types"] # 2 operations
 google-tag-gateway = ["types"] # 2 operations
@@ -278,7 +276,6 @@ live = ["types"] # 1 operation
 load-balancers = ["types"] # 42 operations
 logpush = ["types"] # 34 operations
 logs = ["types"] # 24 operations
-magic-cloud-networking = ["types"] # 33 operations
 magic-network-monitoring = ["types"] # 16 operations
 magic-transit = ["types"] # 139 operations
 managed-defense = ["types"] # 9 operations
@@ -289,10 +286,10 @@ mesh = ["types"] # 11 operations
 monetization = ["types"] # 10 operations
 network = ["types"] # 25 operations
 network-interconnects = ["types"] # 16 operations
-observability = ["types"] # 42 operations
+observability = ["types"] # 43 operations
 organization = ["types"] # 15 operations
 organizations = ["types"] # 3 operations
-other = ["types"] # 4 operations
+other = ["types"] # 2 operations
 page-rules = ["types"] # 6 operations
 pages = ["types"] # 26 operations
 pay-per-crawl = ["types"] # 17 operations
@@ -304,7 +301,7 @@ queues = ["types"] # 26 operations
 r2 = ["types"] # 52 operations
 radar = ["types"] # 152 operations
 ready = ["types"] # 1 operation
-realtime = ["types"] # 80 operations
+realtime = ["types"] # 81 operations
 registrar = ["types"] # 13 operations
 registrar-sandbox = ["types"] # 10 operations
 reporting = ["types"] # 6 operations
@@ -326,7 +323,7 @@ sql = ["types"] # 2 operations
 ssl = ["types"] # 58 operations
 stream = ["types"] # 50 operations
 tags = ["types"] # 10 operations
-tenant = ["types"] # 5 operations
+tenant = ["types"] # 1 operation
 tenant-custom-nameservers = ["types"] # 3 operations
 tunnel = ["types"] # 1 operation
 tunnels = ["types"] # 12 operations
@@ -344,9 +341,8 @@ workers-for-platforms = ["types"] # 27 operations
 workers-vpc = ["types"] # 5 operations
 workflows = ["types"] # 31 operations
 zaraz = ["types"] # 10 operations
-zero-trust = ["types"] # 556 operations
-zone = ["types"] # 1 operation
-zones = ["types"] # 63 operations
+zero-trust = ["types"] # 560 operations
+zones = ["types"] # 64 operations
 # END products
 
 [lints.cargo]
