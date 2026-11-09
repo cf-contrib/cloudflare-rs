@@ -110,7 +110,7 @@ CLOUDFLARE_API_TOKEN=... cargo run --features client,zones --example list_zones
 [`openapi/cloudflare/v4/openapi.yaml`](openapi/cloudflare/v4/openapi.yaml) is the
 source, vendored unchanged from
 [cloudflare/api-schemas](https://github.com/cloudflare/api-schemas) at
-`319dc756af2a642b3122b4db7e3b79ac1fbec7d8`.
+`650bd71c22db3b938a4611bf4cc5afd896b400b7`.
 [`overlay.yaml`](openapi/cloudflare/v4/overlay.yaml) beside it is an
 [OpenAPI Overlay](https://spec.openapis.org/overlay/v1.1.0.html) of the fixes the
 generator needs, which says what each one is.
