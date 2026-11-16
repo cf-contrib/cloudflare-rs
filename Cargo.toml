@@ -194,7 +194,6 @@ full = [
   "web-assets",
   "web3",
   "workers",
-  "workers-builds",
   "workers-for-platforms",
   "workers-vpc",
   "workflows",
@@ -209,7 +208,7 @@ addressing = ["types"] # 44 operations
 agent-memory = ["types"] # 14 operations
 ai = ["types"] # 15 operations
 ai-audit = ["types"] # 2 operations
-ai-gateway = ["types"] # 66 operations
+ai-gateway = ["types"] # 67 operations
 ai-search = ["types"] # 36 operations
 ai-security = ["types"] # 4 operations
 alerting = ["types"] # 25 operations
@@ -226,12 +225,12 @@ bot-management = ["types"] # 4 operations
 botnet-feed = ["types"] # 4 operations
 brand-protection = ["types"] # 53 operations
 browser-extension = ["types"] # 8 operations
-browser-run = ["types"] # 27 operations
-builds = ["types"] # 32 operations
+browser-run = ["types"] # 29 operations
+builds = ["types"] # 41 operations
 cache = ["types"] # 24 operations
 client-side-security = ["types"] # 13 operations
 cloud-connector = ["types"] # 2 operations
-cloudforce-one = ["types"] # 270 operations
+cloudforce-one = ["types"] # 272 operations
 connector-interrupts = ["types"] # 2 operations
 connector-telemetry-events = ["types"] # 2 operations
 connector-telemetry-events-latest = ["types"] # 1 operation
@@ -246,12 +245,12 @@ custom-csrs = ["types"] # 8 operations
 custom-hostnames = ["types"] # 11 operations
 custom-nameservers = ["types"] # 3 operations
 custom-pages = ["types"] # 18 operations
-d1 = ["types"] # 13 operations
+d1 = ["types"] # 15 operations
 diagnostics = ["types"] # 6 operations
 dls = ["types"] # 7 operations
-dns = ["types"] # 65 operations
+dns = ["types"] # 64 operations
 dns-firewall = ["types"] # 7 operations
-durable-objects = ["types"] # 3 operations
+durable-objects = ["types"] # 4 operations
 email-auth = ["types"] # 3 operations
 email-domains = ["types"] # 6 operations
 email-routing = ["types"] # 21 operations
@@ -294,7 +293,7 @@ page-rules = ["types"] # 6 operations
 pages = ["types"] # 26 operations
 pay-per-crawl = ["types"] # 17 operations
 pay-per-use = ["types"] # 16 operations
-pipelines = ["types"] # 14 operations
+pipelines = ["types"] # 16 operations
 precursor = ["types"] # 2 operations
 previews = ["types"] # 1 operation
 queues = ["types"] # 26 operations
@@ -326,7 +325,7 @@ tags = ["types"] # 10 operations
 tenant-custom-nameservers = ["types"] # 3 operations
 tenants = ["types"] # 1 operation
 tunnel = ["types"] # 1 operation
-tunnels = ["types"] # 12 operations
+tunnels = ["types"] # 13 operations
 turnstile = ["types"] # 6 operations
 url-normalization = ["types"] # 3 operations
 url-scanner = ["types"] # 8 operations
@@ -336,12 +335,11 @@ waiting-rooms = ["types"] # 24 operations
 web-assets = ["types"] # 28 operations
 web3 = ["types"] # 12 operations
 workers = ["types"] # 77 operations
-workers-builds = ["types"] # 6 operations
 workers-for-platforms = ["types"] # 27 operations
 workers-vpc = ["types"] # 5 operations
 workflows = ["types"] # 31 operations
 zaraz = ["types"] # 10 operations
-zero-trust = ["types"] # 564 operations
+zero-trust = ["types"] # 568 operations
 zones = ["types"] # 64 operations
 # END products
 
